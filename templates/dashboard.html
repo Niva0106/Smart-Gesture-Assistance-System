@@ -1,1031 +1,1063 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>CareSense | Nurse Dashboard</title>
+    <title>CareSense | Hospital Monitoring</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
         :root {
-            --bg: #f5f7fb;
-            --card: #ffffff;
-            --text: #172033;
-            --muted: #7b8496;
-            --border: #e8ebf2;
-            --primary: #5b5ce2;
-            --primary-light: #eeeeff;
-            --green: #20b486;
-            --green-light: #e8faf4;
-            --red: #ef476f;
-            --red-light: #fff0f3;
-            --orange: #f59e0b;
-            --orange-light: #fff7e6;
-            --blue: #3b82f6;
-            --shadow: 0 8px 30px rgba(31, 41, 55, 0.06);
+            --navy: #102a43;
+            --navy-2: #173f5f;
+            --blue: #1976d2;
+            --blue-light: #eaf4ff;
+            --teal: #13b8a6;
+            --teal-light: #e8faf7;
+
+            --green: #20a05a;
+            --green-light: #eaf8f0;
+
+            --orange: #ed8b24;
+            --orange-light: #fff5e8;
+
+            --red: #e34d59;
+            --red-light: #fff0f1;
+
+            --text: #203040;
+            --muted: #718096;
+            --border: #e6edf3;
+            --background: #f4f8fb;
+            --white: #ffffff;
         }
 
-
         body {
-            font-family: Inter, Arial, sans-serif;
-            background: var(--bg);
+            font-family: "Inter", sans-serif;
+            background: var(--background);
             color: var(--text);
         }
 
+        button {
+            font-family: inherit;
+        }
 
-        /* =====================================
+        /* =========================
            SIDEBAR
-        ===================================== */
+        ========================= */
 
         .sidebar {
             position: fixed;
             left: 0;
             top: 0;
-
-            width: 245px;
+            width: 255px;
             height: 100vh;
-
-            background: #ffffff;
-
-            border-right: 1px solid var(--border);
-
-            padding: 25px 15px;
-
-            z-index: 10;
+            background: linear-gradient(180deg, #102a43, #0b2237);
+            color: white;
+            padding: 25px 17px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
         }
-
 
         .logo {
             display: flex;
             align-items: center;
             gap: 12px;
-
-            padding: 0 12px 30px;
+            padding: 5px 10px 35px;
         }
 
-
-        .logo-icon {
-            width: 42px;
-            height: 42px;
-
-            border-radius: 12px;
-
-            background: var(--primary);
-
-            color: white;
-
+        .logo-box {
+            width: 43px;
+            height: 43px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #22c7b5, #1976d2);
             display: flex;
-            align-items: center;
             justify-content: center;
-
+            align-items: center;
             font-size: 21px;
+            font-weight: 800;
         }
-
 
         .logo h2 {
-            font-size: 19px;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
         }
 
-
-        .logo span {
-            display: block;
-
-            color: var(--muted);
-
-            font-size: 11px;
-
+        .logo p {
+            font-size: 8px;
+            color: #9bb4c8;
             margin-top: 3px;
-        }
-
-
-        .menu-title {
-            font-size: 11px;
-
-            color: #a0a7b5;
-
-            padding: 0 14px;
-
-            margin-bottom: 10px;
-
-            text-transform: uppercase;
-
             letter-spacing: 1px;
         }
 
+        .menu-title {
+            color: #7691a7;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            padding: 0 13px 10px;
+        }
 
-        .nav-item {
-            width: 100%;
-
-            padding: 12px 14px;
-
-            margin-bottom: 5px;
-
-            border-radius: 10px;
-
+        .menu {
             display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
 
+        .menu button {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: #a9bfd0;
+            padding: 12px 13px;
+            border-radius: 9px;
+            display: flex;
             align-items: center;
-
             gap: 12px;
-
-            color: #667085;
-
             cursor: pointer;
-
-            font-size: 14px;
-
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
             transition: 0.2s;
         }
 
-
-        .nav-item:hover {
-            background: #f6f6ff;
-
-            color: var(--primary);
-        }
-
-
-        .nav-item.active {
-            background: var(--primary-light);
-
-            color: var(--primary);
-
-            font-weight: 600;
-        }
-
-
-        .nav-icon {
-            width: 20px;
-
-            text-align: center;
-
-            font-size: 17px;
-        }
-
-
-        .sidebar-bottom {
-            position: absolute;
-
-            bottom: 25px;
-
-            left: 15px;
-
-            right: 15px;
-
-            padding: 15px;
-
-            border-radius: 12px;
-
-            background: #f8f9fc;
-        }
-
-
-        .system-small {
-            font-size: 12px;
-
-            color: var(--muted);
-
-            margin-bottom: 8px;
-        }
-
-
-        .online {
-            display: flex;
-
-            align-items: center;
-
-            gap: 7px;
-
-            font-size: 13px;
-
-            font-weight: 600;
-
-            color: var(--green);
-        }
-
-
-        .online-dot {
-            width: 8px;
-            height: 8px;
-
-            border-radius: 50%;
-
-            background: var(--green);
-        }
-
-
-        /* =====================================
-           MAIN
-        ===================================== */
-
-        .main {
-            margin-left: 245px;
-
-            min-height: 100vh;
-        }
-
-
-        /* =====================================
-           TOP BAR
-        ===================================== */
-
-        .topbar {
-            height: 76px;
-
-            background: white;
-
-            border-bottom: 1px solid var(--border);
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            padding: 0 35px;
-        }
-
-
-        .page-title h1 {
-            font-size: 22px;
-        }
-
-
-        .page-title p {
-            color: var(--muted);
-
-            font-size: 13px;
-
-            margin-top: 4px;
-        }
-
-
-        .top-right {
-            display: flex;
-
-            align-items: center;
-
-            gap: 18px;
-        }
-
-
-        .live-pill {
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-
-            background: var(--green-light);
-
-            color: var(--green);
-
-            padding: 8px 14px;
-
-            border-radius: 20px;
-
-            font-size: 12px;
-
-            font-weight: 600;
-        }
-
-
-        .profile {
-            width: 38px;
-            height: 38px;
-
-            border-radius: 50%;
-
-            background: var(--primary-light);
-
-            color: var(--primary);
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            font-weight: bold;
-        }
-
-
-        /* =====================================
-           CONTENT
-        ===================================== */
-
-        .content {
-            padding: 30px 35px;
-        }
-
-
-        /* =====================================
-           EMERGENCY
-        ===================================== */
-
-        #emergencyAlert {
-            display: none;
-
-            background: var(--red);
-
+        .menu button:hover {
+            background: rgba(255,255,255,0.07);
             color: white;
-
-            padding: 18px 22px;
-
-            border-radius: 14px;
-
-            margin-bottom: 22px;
-
-            box-shadow: 0 8px 25px rgba(239, 71, 111, 0.25);
-
-            animation: pulse 1.5s infinite;
         }
 
-
-        #emergencyAlert.show {
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
+        .menu button.active {
+            background: linear-gradient(90deg, #1d70ba, #17619f);
+            color: white;
+            box-shadow: 0 7px 18px rgba(0,0,0,0.15);
         }
 
-
-        .emergency-left {
-            display: flex;
-
-            align-items: center;
-
-            gap: 15px;
-        }
-
-
-        .emergency-icon {
-            width: 45px;
-            height: 45px;
-
-            background: rgba(255,255,255,0.18);
-
-            border-radius: 12px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            font-size: 23px;
-        }
-
-
-        .emergency-left h3 {
-            font-size: 17px;
-
-            margin-bottom: 3px;
-        }
-
-
-        .emergency-left p {
-            font-size: 12px;
-
-            opacity: 0.9;
-        }
-
-
-        @keyframes pulse {
-
-            0% {
-                box-shadow: 0 0 0 0 rgba(239,71,111,0.4);
-            }
-
-            70% {
-                box-shadow: 0 0 0 12px rgba(239,71,111,0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(239,71,111,0);
-            }
-
-        }
-
-
-        /* =====================================
-           STAT CARDS
-        ===================================== */
-
-        .stats-grid {
-            display: grid;
-
-            grid-template-columns:
-                repeat(4, 1fr);
-
-            gap: 18px;
-
-            margin-bottom: 22px;
-        }
-
-
-        .stat-card {
-            background: white;
-
-            border: 1px solid var(--border);
-
-            border-radius: 15px;
-
-            padding: 20px;
-
-            box-shadow: var(--shadow);
-        }
-
-
-        .stat-top {
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-        }
-
-
-        .stat-label {
-            font-size: 12px;
-
-            color: var(--muted);
-        }
-
-
-        .stat-icon {
-            width: 36px;
-            height: 36px;
-
-            border-radius: 10px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            font-size: 17px;
-        }
-
-
-        .purple {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-
-
-        .green {
-            background: var(--green-light);
-            color: var(--green);
-        }
-
-
-        .red {
-            background: var(--red-light);
-            color: var(--red);
-        }
-
-
-        .orange {
-            background: var(--orange-light);
-            color: var(--orange);
-        }
-
-
-        .stat-number {
-            font-size: 27px;
-
-            font-weight: 700;
-
-            margin-top: 12px;
-        }
-
-
-        /* =====================================
-           MAIN GRID
-        ===================================== */
-
-        .dashboard-grid {
-            display: grid;
-
-            grid-template-columns: 1.15fr 0.85fr;
-
-            gap: 22px;
-
-            margin-bottom: 22px;
-        }
-
-
-        .card {
-            background: white;
-
-            border: 1px solid var(--border);
-
-            border-radius: 15px;
-
-            padding: 23px;
-
-            box-shadow: var(--shadow);
-        }
-
-
-        .card-header {
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-            margin-bottom: 20px;
-        }
-
-
-        .card-header h2 {
+        .menu-icon {
+            width: 22px;
+            text-align: center;
             font-size: 16px;
         }
 
-
-        .card-header span {
-            color: var(--muted);
-
-            font-size: 12px;
+        .sidebar-bottom {
+            margin-top: auto;
         }
 
-
-        /* =====================================
-           PATIENT
-        ===================================== */
-
-        .patient-box {
-            display: flex;
-
-            align-items: center;
-
-            gap: 16px;
+        .system-box {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 13px;
+            padding: 15px;
         }
 
-
-        .patient-avatar {
-            width: 65px;
-            height: 65px;
-
-            border-radius: 17px;
-
-            background: var(--primary-light);
-
-            color: var(--primary);
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            font-size: 28px;
-        }
-
-
-        .patient-info h3 {
-            font-size: 18px;
-
-            margin-bottom: 5px;
-        }
-
-
-        .patient-info p {
-            color: var(--muted);
-
-            font-size: 12px;
-        }
-
-
-        .monitoring {
-            margin-top: 20px;
-
-            padding: 13px;
-
-            border-radius: 10px;
-
-            background: var(--green-light);
-
-            color: var(--green);
-
-            font-size: 13px;
-
-            font-weight: 600;
-        }
-
-
-        /* =====================================
-           REQUEST
-        ===================================== */
-
-        .request-center {
-            text-align: center;
-
-            padding: 8px 0;
-        }
-
-
-        .request-label {
-            color: var(--muted);
-
-            font-size: 11px;
-
+        .system-label {
+            color: #7e99ae;
+            font-size: 9px;
             text-transform: uppercase;
-
-            letter-spacing: 1.5px;
+            letter-spacing: .8px;
+            margin-bottom: 10px;
         }
 
-
-        #gesture {
-            font-size: 32px;
-
-            font-weight: 700;
-
-            margin: 13px 0;
-        }
-
-
-        #confidence {
-            font-size: 12px;
-
-            color: var(--muted);
-        }
-
-
-        .progress {
-            height: 7px;
-
-            background: #edf0f5;
-
-            border-radius: 10px;
-
-            margin: 12px 0 15px;
-
-            overflow: hidden;
-        }
-
-
-        #confidenceBar {
-            height: 100%;
-
-            width: 0%;
-
-            background: var(--primary);
-
-            border-radius: 10px;
-
-            transition: width 0.4s;
-        }
-
-
-        .request-meta {
+        .system-status {
             display: flex;
-
-            justify-content: center;
-
-            gap: 15px;
-
-            color: var(--muted);
-
-            font-size: 12px;
+            align-items: center;
+            gap: 8px;
+            color: #b9f3d0;
+            font-size: 10px;
+            font-weight: 700;
         }
 
-
-        #status {
-            display: inline-block;
-
-            margin-top: 15px;
-
-            padding: 6px 14px;
-
-            border-radius: 20px;
-
-            background: var(--orange-light);
-
-            color: var(--orange);
-
-            font-size: 12px;
-
-            font-weight: 600;
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #32d583;
+            box-shadow: 0 0 0 4px rgba(50,213,131,.13);
         }
 
+        /* =========================
+           MAIN
+        ========================= */
 
-        #status.handled {
-            background: var(--green-light);
-
-            color: var(--green);
+        .main {
+            margin-left: 255px;
+            min-height: 100vh;
         }
 
-
-        .handle-btn {
-            width: 100%;
-
-            margin-top: 17px;
-
-            border: none;
-
-            padding: 11px;
-
-            border-radius: 9px;
-
-            background: var(--primary);
-
-            color: white;
-
-            font-weight: 600;
-
-            cursor: pointer;
-        }
-
-
-        .handle-btn:hover {
-            opacity: 0.9;
-        }
-
-
-        /* =====================================
-           QUICK ACTIONS
-        ===================================== */
-
-        .quick-actions {
-            display: grid;
-
-            grid-template-columns:
-                repeat(4, 1fr);
-
-            gap: 12px;
-        }
-
-
-        .quick-btn {
-            border: 1px solid var(--border);
-
+        .topbar {
+            height: 72px;
             background: white;
-
-            border-radius: 11px;
-
-            padding: 14px 8px;
-
-            cursor: pointer;
-
-            text-align: center;
-
-            color: #667085;
-
-            font-size: 11px;
-        }
-
-
-        .quick-btn:hover {
-            border-color: var(--primary);
-
-            color: var(--primary);
-
-            background: var(--primary-light);
-        }
-
-
-        .quick-btn div {
-            font-size: 20px;
-
-            margin-bottom: 6px;
-        }
-
-
-        /* =====================================
-           HISTORY
-        ===================================== */
-
-        .history-card {
-            margin-bottom: 22px;
-        }
-
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-
-        table {
-            width: 100%;
-
-            border-collapse: collapse;
-
-            font-size: 12px;
-        }
-
-
-        th {
-            color: var(--muted);
-
-            font-weight: 600;
-
-            text-align: left;
-
-            padding: 11px;
-
             border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
         }
 
-
-        td {
-            padding: 13px 11px;
-
-            border-bottom: 1px solid #f0f1f4;
+        .top-title h1 {
+            font-size: 21px;
+            color: var(--navy);
+            font-weight: 800;
         }
 
-
-        .gesture-badge {
-            display: inline-block;
-
-            padding: 5px 9px;
-
-            border-radius: 7px;
-
-            background: var(--primary-light);
-
-            color: var(--primary);
-
-            font-weight: 600;
+        .top-title p {
+            color: var(--muted);
+            font-size: 10px;
+            margin-top: 4px;
         }
 
-
-        .emergency-badge {
-            background: var(--red-light);
-
-            color: var(--red);
-        }
-
-
-        .status-badge {
-            padding: 5px 9px;
-
-            border-radius: 7px;
-
-            background: var(--orange-light);
-
-            color: var(--orange);
-
-            font-weight: 600;
-        }
-
-
-        .status-handled {
-            background: var(--green-light);
-
-            color: var(--green);
-        }
-
-
-        /* =====================================
-           BOTTOM GRID
-        ===================================== */
-
-        .bottom-grid {
-            display: grid;
-
-            grid-template-columns: 1fr 1fr;
-
+        .top-right {
+            display: flex;
+            align-items: center;
             gap: 22px;
         }
 
-
-        .chart-container {
-            height: 240px;
-        }
-
-
-        /* =====================================
-           MODEL
-        ===================================== */
-
-        .model-row {
-            margin-bottom: 16px;
-        }
-
-
-        .model-top {
+        .server-pill {
             display: flex;
-
-            justify-content: space-between;
-
-            font-size: 12px;
-
-            margin-bottom: 7px;
-        }
-
-
-        .model-top span:last-child {
+            align-items: center;
+            gap: 7px;
+            padding: 7px 11px;
+            border: 1px solid #dceee6;
+            background: #f5fcf8;
+            border-radius: 20px;
+            color: var(--green);
+            font-size: 9px;
             font-weight: 700;
-
-            color: var(--primary);
         }
 
-
-        .model-bar {
-            height: 7px;
-
-            background: #edf0f5;
-
-            border-radius: 10px;
-
-            overflow: hidden;
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-
-        .model-fill {
-            height: 100%;
-
-            background: var(--primary);
-
-            border-radius: 10px;
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--blue-light);
+            color: var(--blue);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 800;
         }
 
-
-        .best-model {
-            margin-top: 20px;
-
-            padding: 13px;
-
-            border-radius: 10px;
-
-            background: var(--primary-light);
-
-            color: var(--primary);
-
-            font-size: 12px;
-
-            font-weight: 600;
+        .profile strong {
+            display: block;
+            color: var(--navy);
+            font-size: 10px;
         }
 
+        .profile span {
+            display: block;
+            color: var(--muted);
+            font-size: 8px;
+            margin-top: 2px;
+        }
 
-        /* =====================================
+        .content {
+            padding: 27px 32px 50px;
+        }
+
+        /* =========================
            SECTIONS
-        ===================================== */
+        ========================= */
 
         .section {
             display: none;
         }
 
-
         .section.active {
             display: block;
         }
 
+        /* =========================
+           WELCOME
+        ========================= */
 
-        /* =====================================
-           MOBILE
-        ===================================== */
+        .welcome {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+        }
 
-        @media (max-width: 1000px) {
+        .welcome h2 {
+            color: var(--navy);
+            font-size: 18px;
+            font-weight: 800;
+        }
 
-            .sidebar {
-                width: 75px;
+        .welcome p {
+            color: var(--muted);
+            font-size: 10px;
+            margin-top: 5px;
+        }
+
+        .date {
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        /* =========================
+           STATS
+        ========================= */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .stat {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 17px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: .2s;
+        }
+
+        .stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 9px 25px rgba(30,60,90,.07);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: .6px;
+        }
+
+        .stat-number {
+            color: var(--navy);
+            font-size: 25px;
+            font-weight: 800;
+            margin-top: 6px;
+        }
+
+        .stat-note {
+            font-size: 8px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+        }
+
+        .stat-blue {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .stat-teal {
+            background: var(--teal-light);
+            color: var(--teal);
+        }
+
+        .stat-orange {
+            background: var(--orange-light);
+            color: var(--orange);
+        }
+
+        .stat-red {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        /* =========================
+           MAIN GRID
+        ========================= */
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.35fr;
+            gap: 17px;
+            margin-bottom: 18px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 19px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            color: var(--navy);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .card-subtitle {
+            color: var(--muted);
+            font-size: 8px;
+            margin-top: 3px;
+        }
+
+        .card-body {
+            padding: 19px;
+        }
+
+        /* =========================
+           PATIENT
+        ========================= */
+
+        .patient-top {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-bottom: 18px;
+        }
+
+        .patient-photo {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #e5f2ff, #e7faf7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--blue);
+        }
+
+        .patient-name {
+            color: var(--navy);
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .patient-id {
+            color: var(--muted);
+            font-size: 9px;
+            margin-top: 4px;
+        }
+
+        .monitoring {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--green);
+            background: var(--green-light);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 7px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .monitoring .dot {
+            width: 5px;
+            height: 5px;
+        }
+
+        .patient-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border-radius: 9px;
+            padding: 10px;
+        }
+
+        .info-label {
+            color: var(--muted);
+            font-size: 7px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .info-value {
+            color: var(--navy);
+            font-size: 10px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        /* =========================
+           LIVE REQUEST
+        ========================= */
+
+        .live-container {
+            min-height: 195px;
+            display: grid;
+            grid-template-columns: 90px 1fr;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .gesture-circle {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e7f4ff, #e5faf7);
+            border: 7px solid #f7fbfd;
+            box-shadow: 0 0 0 1px #dcecf5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 34px;
+        }
+
+        .new-label {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: var(--orange-light);
+            color: var(--orange);
+            font-size: 7px;
+            font-weight: 800;
+            margin-bottom: 7px;
+        }
+
+        .gesture-name {
+            color: var(--navy);
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .confidence {
+            color: var(--muted);
+            font-size: 9px;
+            margin-top: 5px;
+        }
+
+        .confidence strong {
+            color: var(--teal);
+        }
+
+        .time {
+            color: var(--muted);
+            font-size: 8px;
+            margin-top: 5px;
+        }
+
+        .actions {
+            margin-top: 14px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 9px 14px;
+            cursor: pointer;
+            font-size: 8px;
+            font-weight: 700;
+            transition: .2s;
+        }
+
+        .btn-primary {
+            color: white;
+            background: linear-gradient(135deg, #1976d2, #1766b0);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 12px rgba(25,118,210,.25);
+        }
+
+        .btn-light {
+            background: #f1f6fa;
+            color: var(--text);
+        }
+
+        .btn-light:hover {
+            background: #e7eef4;
+        }
+
+        /* =========================
+           ACTIVITY
+        ========================= */
+
+        .activity-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 17px;
+        }
+
+        .activity {
+            display: flex;
+            align-items: center;
+            padding: 12px 19px;
+            border-bottom: 1px solid #f0f4f7;
+        }
+
+        .activity:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 34px;
+            height: 34px;
+            background: var(--blue-light);
+            color: var(--blue);
+            border-radius: 9px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 11px;
+        }
+
+        .activity-main {
+            flex: 1;
+        }
+
+        .activity-main strong {
+            display: block;
+            color: var(--navy);
+            font-size: 9px;
+        }
+
+        .activity-main span {
+            display: block;
+            color: var(--muted);
+            font-size: 7px;
+            margin-top: 3px;
+        }
+
+        .badge {
+            padding: 4px 7px;
+            border-radius: 20px;
+            font-size: 7px;
+            font-weight: 800;
+        }
+
+        .badge-new {
+            color: var(--orange);
+            background: var(--orange-light);
+        }
+
+        .badge-handled {
+            color: var(--green);
+            background: var(--green-light);
+        }
+
+        .badge-emergency {
+            color: var(--red);
+            background: var(--red-light);
+        }
+
+        /* =========================
+           PERFORMANCE
+        ========================= */
+
+        .performance {
+            padding: 19px;
+        }
+
+        .performance-row {
+            margin-bottom: 17px;
+        }
+
+        .performance-label {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 8px;
+            margin-bottom: 6px;
+        }
+
+        .performance-label strong {
+            color: var(--navy);
+        }
+
+        .progress {
+            height: 7px;
+            background: #edf2f6;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #1976d2, #13b8a6);
+            border-radius: 20px;
+            transition: .4s;
+        }
+
+        .service {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid #f0f4f7;
+            font-size: 8px;
+        }
+
+        .service:last-child {
+            border-bottom: none;
+        }
+
+        .service-name {
+            color: var(--muted);
+        }
+
+        .service-status {
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        /* =========================
+           SECTION PAGES
+        ========================= */
+
+        .page-heading {
+            margin-bottom: 20px;
+        }
+
+        .page-heading h2 {
+            color: var(--navy);
+            font-size: 19px;
+            font-weight: 800;
+        }
+
+        .page-heading p {
+            color: var(--muted);
+            font-size: 9px;
+            margin-top: 4px;
+        }
+
+        .patient-page {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 17px;
+        }
+
+        .patient-profile-card {
+            padding: 23px;
+        }
+
+        .medical-info {
+            margin-top: 18px;
+            background: #f8fafc;
+            padding: 14px;
+            border-radius: 10px;
+        }
+
+        .medical-info h4 {
+            color: var(--muted);
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+        .medical-info p {
+            color: var(--navy);
+            font-size: 10px;
+            line-height: 1.6;
+            margin-top: 7px;
+        }
+
+        /* =========================
+           REQUEST LIST
+        ========================= */
+
+        .request-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 11px;
+        }
+
+        .request-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .request-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            background: var(--blue-light);
+            color: var(--blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .request-card h3 {
+            color: var(--navy);
+            font-size: 10px;
+        }
+
+        .request-card p {
+            color: var(--muted);
+            font-size: 8px;
+            margin-top: 4px;
+        }
+
+        /* =========================
+           TABLE
+        ========================= */
+
+        .table-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f7fafc;
+            color: var(--muted);
+            font-size: 7px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 13px 15px;
+            color: var(--text);
+            font-size: 8px;
+            border-top: 1px solid #f0f4f7;
+        }
+
+        td strong {
+            color: var(--navy);
+        }
+
+        .attend {
+            border: none;
+            padding: 6px 9px;
+            border-radius: 6px;
+            background: var(--blue-light);
+            color: var(--blue);
+            font-size: 7px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .attend:hover {
+            background: var(--blue);
+            color: white;
+        }
+
+        /* =========================
+           EMERGENCY
+        ========================= */
+
+        .emergency {
+            background: white;
+            border: 1px solid #ffd3d6;
+            border-left: 4px solid var(--red);
+            border-radius: 12px;
+            padding: 17px;
+            margin-bottom: 11px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .emergency-icon {
+            width: 43px;
+            height: 43px;
+            background: var(--red-light);
+            color: var(--red);
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+        }
+
+        .emergency-content {
+            flex: 1;
+        }
+
+        .emergency-content h3 {
+            color: var(--navy);
+            font-size: 10px;
+        }
+
+        .emergency-content p {
+            color: var(--muted);
+            font-size: 8px;
+            margin-top: 4px;
+        }
+
+        /* =========================
+           ANALYTICS
+        ========================= */
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 17px;
+        }
+
+        .analytics-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .analytics-card h3 {
+            color: var(--navy);
+            font-size: 11px;
+        }
+
+        .big-number {
+            color: var(--navy);
+            font-size: 34px;
+            font-weight: 800;
+            margin-top: 15px;
+        }
+
+        .big-number-label {
+            color: var(--muted);
+            font-size: 8px;
+            margin-top: 3px;
+        }
+
+        /* =========================
+           EMPTY
+        ========================= */
+
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 28px;
+            margin-bottom: 9px;
+        }
+
+        .empty h3 {
+            color: var(--navy);
+            font-size: 11px;
+        }
+
+        .empty p {
+            font-size: 8px;
+            margin-top: 4px;
+        }
+
+        /* =========================
+           TOAST
+        ========================= */
+
+        .toast {
+            position: fixed;
+            right: 25px;
+            bottom: 25px;
+            background: var(--navy);
+            color: white;
+            padding: 11px 16px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 700;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: .25s;
+            z-index: 999;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1100px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
             }
 
-            .logo h2,
-            .logo span,
-            .menu-title,
-            .nav-item span,
-            .sidebar-bottom {
-                display: none;
+            .main-grid,
+            .activity-grid,
+            .patient-page {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 800px) {
+            .sidebar {
+                width: 70px;
+                padding: 20px 9px;
             }
 
             .logo {
                 justify-content: center;
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .logo h2,
+            .logo p,
+            .menu-title,
+            .menu button span:not(.menu-icon),
+            .system-box {
+                display: none;
+            }
+
+            .menu button {
+                justify-content: center;
             }
 
             .main {
-                margin-left: 75px;
+                margin-left: 70px;
             }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .dashboard-grid,
-            .bottom-grid {
-                grid-template-columns: 1fr;
-            }
-
-        }
-
-
-        @media (max-width: 650px) {
 
             .content {
                 padding: 20px 15px;
@@ -1035,134 +1067,110 @@
                 padding: 0 15px;
             }
 
-            .stats-grid {
+            .profile strong,
+            .profile span,
+            .server-pill {
+                display: none;
+            }
+
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .stats {
                 grid-template-columns: 1fr;
             }
 
-            .quick-actions {
-                grid-template-columns: repeat(2, 1fr);
+            .welcome {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 8px;
             }
 
-            .page-title h1 {
-                font-size: 17px;
+            .live-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+                justify-items: center;
             }
 
+            .actions {
+                justify-content: center;
+            }
+
+            .patient-info {
+                grid-template-columns: 1fr;
+            }
         }
-
     </style>
-
 </head>
-
 
 <body>
 
-
-<!-- =====================================================
+<!-- =========================
      SIDEBAR
-===================================================== -->
+========================= -->
 
 <aside class="sidebar">
 
     <div class="logo">
-
-        <div class="logo-icon">
-            ✋
-        </div>
+        <div class="logo-box">C</div>
 
         <div>
             <h2>CareSense</h2>
-            <span>Gesture Assistance</span>
+            <p>SMART PATIENT ASSISTANCE</p>
         </div>
-
     </div>
 
+    <div class="menu-title">Navigation</div>
 
-    <div class="menu-title">
-        Main Menu
-    </div>
+    <nav class="menu">
 
+        <button class="active" onclick="showSection('dashboard', this)">
+            <span class="menu-icon">⌂</span>
+            <span>Dashboard</span>
+        </button>
 
-    <div class="nav-item active"
-         onclick="showSection('dashboard', this)">
+        <button onclick="showSection('patients', this)">
+            <span class="menu-icon">♙</span>
+            <span>Patients</span>
+        </button>
 
-        <div class="nav-icon">⌂</div>
+        <button onclick="showSection('live', this)">
+            <span class="menu-icon">◉</span>
+            <span>Live Requests</span>
+        </button>
 
-        <span>Dashboard</span>
+        <button onclick="showSection('emergency', this)">
+            <span class="menu-icon">!</span>
+            <span>Emergency</span>
+        </button>
 
-    </div>
+        <button onclick="showSection('history', this)">
+            <span class="menu-icon">▤</span>
+            <span>Request History</span>
+        </button>
 
+        <button onclick="showSection('analytics', this)">
+            <span class="menu-icon">▥</span>
+            <span>Analytics</span>
+        </button>
 
-    <div class="nav-item"
-         onclick="showSection('patients', this)">
-
-        <div class="nav-icon">♙</div>
-
-        <span>Patients</span>
-
-    </div>
-
-
-    <div class="nav-item"
-         onclick="showSection('requests', this)">
-
-        <div class="nav-icon">🔔</div>
-
-        <span>Live Requests</span>
-
-    </div>
-
-
-    <div class="nav-item"
-         onclick="showSection('emergency', this)">
-
-        <div class="nav-icon">🚨</div>
-
-        <span>Emergency</span>
-
-    </div>
-
-
-    <div class="nav-item"
-         onclick="showSection('history', this)">
-
-        <div class="nav-icon">▤</div>
-
-        <span>Request History</span>
-
-    </div>
-
-
-    <div class="nav-item"
-         onclick="showSection('analytics', this)">
-
-        <div class="nav-icon">◒</div>
-
-        <span>Analytics</span>
-
-    </div>
-
-
-    <div class="nav-item"
-         onclick="showSection('model', this)">
-
-        <div class="nav-icon">◉</div>
-
-        <span>ML Model</span>
-
-    </div>
-
+    </nav>
 
     <div class="sidebar-bottom">
 
-        <div class="system-small">
-            System status
-        </div>
+        <div class="system-box">
 
-        <div class="online">
+            <div class="system-label">
+                System Status
+            </div>
 
-            <div class="online-dot"></div>
-
-            System Online
+            <div class="system-status">
+                <span class="dot"></span>
+                All systems operational
+            </div>
 
         </div>
 
@@ -1171,224 +1179,133 @@
 </aside>
 
 
-
-<!-- =====================================================
+<!-- =========================
      MAIN
-===================================================== -->
+========================= -->
 
 <main class="main">
 
+    <header class="topbar">
 
-    <!-- TOP BAR -->
-
-    <div class="topbar">
-
-        <div class="page-title">
+        <div class="top-title">
 
             <h1 id="pageTitle">
                 Dashboard
             </h1>
 
-            <p>
-                Smart Patient Gesture Assistance System
+            <p id="pageSubtitle">
+                Smart patient monitoring & assistance
             </p>
 
         </div>
 
-
         <div class="top-right">
 
-            <div class="live-pill">
-
-                <div class="online-dot"></div>
-
-                LIVE MONITORING
-
+            <div class="server-pill">
+                <span class="dot"></span>
+                SERVER ONLINE
             </div>
 
-
             <div class="profile">
-                N
+
+                <div class="avatar">
+                    N
+                </div>
+
+                <div>
+                    <strong>Nurse Station</strong>
+                    <span>Monitoring Desk</span>
+                </div>
+
             </div>
 
         </div>
 
-    </div>
-
+    </header>
 
 
     <div class="content">
 
 
-        <!-- =================================================
-             EMERGENCY ALERT
-        ================================================= -->
+        <!-- =========================
+             DASHBOARD
+        ========================= -->
 
-        <div id="emergencyAlert">
+        <section id="dashboard" class="section active">
 
-            <div class="emergency-left">
-
-                <div class="emergency-icon">
-                    🚨
-                </div>
+            <div class="welcome">
 
                 <div>
+                    <h2>Good Evening, Nurse 👋</h2>
+                    <p>Here is today's patient assistance overview.</p>
+                </div>
 
-                    <h3>
-                        Emergency Alert
-                    </h3>
+                <div class="date" id="dateDisplay"></div>
 
-                    <p>
-                        Immediate attention required for
-                        <span id="emergencyPatient">
-                            Patient 01
-                        </span>
-                    </p>
+            </div>
+
+
+            <!-- STATS -->
+
+            <div class="stats">
+
+                <div class="stat">
+
+                    <div>
+                        <div class="stat-label">TOTAL REQUESTS</div>
+                        <div class="stat-number" id="totalRequests">0</div>
+                        <div class="stat-note">Today's activity</div>
+                    </div>
+
+                    <div class="stat-icon stat-blue">▤</div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div>
+                        <div class="stat-label">PENDING</div>
+                        <div class="stat-number" id="pendingRequests">0</div>
+                        <div class="stat-note">Needs attention</div>
+                    </div>
+
+                    <div class="stat-icon stat-orange">◷</div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div>
+                        <div class="stat-label">HANDLED</div>
+                        <div class="stat-number" id="handledRequests">0</div>
+                        <div class="stat-note">Successfully resolved</div>
+                    </div>
+
+                    <div class="stat-icon stat-teal">✓</div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div>
+                        <div class="stat-label">EMERGENCIES</div>
+                        <div class="stat-number" id="emergencyRequests">0</div>
+                        <div class="stat-note">Priority alerts</div>
+                    </div>
+
+                    <div class="stat-icon stat-red">!</div>
 
                 </div>
 
             </div>
 
 
-            <button
-                onclick="handleRequest()"
-                style="
-                    border:none;
-                    background:white;
-                    color:#ef476f;
-                    padding:9px 16px;
-                    border-radius:8px;
-                    font-weight:600;
-                    cursor:pointer;
-                ">
+            <!-- PATIENT + LIVE REQUEST -->
 
-                Handle Now
-
-            </button>
-
-        </div>
-
-
-
-        <!-- =================================================
-             DASHBOARD
-        ================================================= -->
-
-        <section id="dashboard"
-                 class="section active">
-
-
-            <!-- STATISTICS -->
-
-            <div class="stats-grid">
-
-
-                <div class="stat-card">
-
-                    <div class="stat-top">
-
-                        <div class="stat-label">
-                            Total Requests
-                        </div>
-
-                        <div class="stat-icon purple">
-                            ◉
-                        </div>
-
-                    </div>
-
-                    <div
-                        id="totalRequests"
-                        class="stat-number">
-
-                        0
-
-                    </div>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="stat-top">
-
-                        <div class="stat-label">
-                            Pending
-                        </div>
-
-                        <div class="stat-icon orange">
-                            🔔
-                        </div>
-
-                    </div>
-
-                    <div
-                        id="pendingRequests"
-                        class="stat-number">
-
-                        0
-
-                    </div>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="stat-top">
-
-                        <div class="stat-label">
-                            Handled
-                        </div>
-
-                        <div class="stat-icon green">
-                            ✓
-                        </div>
-
-                    </div>
-
-                    <div
-                        id="handledRequests"
-                        class="stat-number">
-
-                        0
-
-                    </div>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="stat-top">
-
-                        <div class="stat-label">
-                            Emergencies
-                        </div>
-
-                        <div class="stat-icon red">
-                            🚨
-                        </div>
-
-                    </div>
-
-                    <div
-                        id="emergencyRequests"
-                        class="stat-number">
-
-                        0
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- PATIENT + REQUEST -->
-
-            <div class="dashboard-grid">
+            <div class="main-grid">
 
 
                 <!-- PATIENT -->
@@ -1397,185 +1314,295 @@
 
                     <div class="card-header">
 
-                        <h2>
-                            Current Patient
-                        </h2>
+                        <div>
+                            <div class="card-title">Current Patient</div>
+                            <div class="card-subtitle">
+                                Patient currently being monitored
+                            </div>
+                        </div>
 
-                        <span>
-                            Patient Profile
+                        <span class="badge badge-handled">
+                            ACTIVE
                         </span>
 
                     </div>
 
 
-                    <div class="patient-box">
+                    <div class="card-body">
 
-                        <div class="patient-avatar">
-                            👤
+                        <div class="patient-top">
+
+                            <div class="patient-photo">
+                                ♙
+                            </div>
+
+                            <div>
+
+                                <div class="patient-name" id="patientName">
+                                    Patient 01
+                                </div>
+
+                                <div class="patient-id" id="patientId">
+                                    ID: Patient 01
+                                </div>
+
+                                <div class="monitoring">
+                                    <span class="dot"></span>
+                                    LIVE MONITORING
+                                </div>
+
+                            </div>
+
                         </div>
 
 
                         <div class="patient-info">
 
-                            <h3 id="patientName">
-                                Patient 01
-                            </h3>
+                            <div class="info-box">
+                                <div class="info-label">Age</div>
+                                <div class="info-value" id="patientAge">—</div>
+                            </div>
+
+                            <div class="info-box">
+                                <div class="info-label">Room</div>
+                                <div class="info-value" id="patientRoom">—</div>
+                            </div>
+
+                            <div class="info-box">
+                                <div class="info-label">Medical Info</div>
+                                <div class="info-value" id="patientMedical">—</div>
+                            </div>
+
+                            <div class="info-box">
+                                <div class="info-label">Connection</div>
+                                <div class="info-value">Online</div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- LIVE REQUEST -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div>
+                            <div class="card-title">Live Gesture Request</div>
+                            <div class="card-subtitle">
+                                Latest request detected by ML model
+                            </div>
+                        </div>
+
+                        <span id="liveStatus" class="badge badge-new">
+                            WAITING
+                        </span>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="live-container">
+
+                            <div class="gesture-circle">
+                                ✋
+                            </div>
+
+                            <div>
+
+                                <span class="new-label">
+                                    ● LIVE DETECTION
+                                </span>
+
+                                <div
+                                    class="gesture-name"
+                                    id="liveGesture"
+                                >
+                                    No request
+                                </div>
+
+                                <div
+                                    class="confidence"
+                                    id="liveConfidence"
+                                >
+                                    Confidence: 0%
+                                </div>
+
+                                <div
+                                    class="time"
+                                    id="liveTime"
+                                >
+                                    Waiting for gesture...
+                                </div>
+
+                                <div class="actions">
+
+                                    <button
+                                        class="btn btn-primary"
+                                        onclick="handleRequest()"
+                                    >
+                                        ✓ Attend Request
+                                    </button>
+
+                                    <button
+                                        class="btn btn-light"
+                                        onclick="showSectionById('history')"
+                                    >
+                                        View History
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACTIVITY + PERFORMANCE -->
+
+            <div class="activity-grid">
+
+
+                <!-- RECENT ACTIVITY -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div>
+                            <div class="card-title">
+                                Recent Requests
+                            </div>
+
+                            <div class="card-subtitle">
+                                Latest patient assistance activity
+                            </div>
+                        </div>
+
+                        <button
+                            class="btn btn-light"
+                            onclick="showSectionById('history')"
+                        >
+                            View All
+                        </button>
+
+                    </div>
+
+
+                    <div id="recentRequests">
+
+                        <div class="empty">
+
+                            <div class="empty-icon">📋</div>
+
+                            <h3>No requests yet</h3>
 
                             <p>
-                                Patient ID:
-                                <span id="patientId">
-                                    Patient 01
-                                </span>
+                                New requests will appear here.
                             </p>
 
                         </div>
 
                     </div>
 
-
-                    <div class="monitoring">
-
-                        ● Monitoring Active
-
-                    </div>
-
                 </div>
 
 
-
-                <!-- REQUEST -->
+                <!-- PERFORMANCE -->
 
                 <div class="card">
 
                     <div class="card-header">
 
-                        <h2>
-                            Live Gesture Request
-                        </h2>
+                        <div>
+                            <div class="card-title">
+                                System Overview
+                            </div>
 
-                        <span>
-                            Real-time
-                        </span>
+                            <div class="card-subtitle">
+                                Current system performance
+                            </div>
+                        </div>
 
                     </div>
 
 
-                    <div class="request-center">
+                    <div class="performance">
 
-                        <div class="request-label">
-                            Current Request
-                        </div>
+                        <div class="performance-row">
 
+                            <div class="performance-label">
+                                <span>Requests handled</span>
+                                <strong id="handledPercentage">
+                                    0%
+                                </strong>
+                            </div>
 
-                        <div id="gesture">
-                            No request
-                        </div>
-
-
-                        <div id="confidence">
-                            Confidence: 0%
-                        </div>
-
-
-                        <div class="progress">
-
-                            <div
-                                id="confidenceBar">
+                            <div class="progress">
+                                <div
+                                    class="progress-bar"
+                                    id="handledProgress"
+                                ></div>
                             </div>
 
                         </div>
 
 
-                        <div class="request-meta">
-
-                            <span>
-                                🕐
-                                <span id="requestTime">
-                                    --
-                                </span>
+                        <div class="service">
+                            <span class="service-name">
+                                Flask Server
                             </span>
 
+                            <span class="service-status">
+                                ● Online
+                            </span>
                         </div>
 
 
-                        <div id="status">
-                            Waiting
+                        <div class="service">
+                            <span class="service-name">
+                                Database
+                            </span>
+
+                            <span class="service-status">
+                                ● Connected
+                            </span>
                         </div>
 
 
-                        <button
-                            class="handle-btn"
-                            onclick="handleRequest()">
+                        <div class="service">
+                            <span class="service-name">
+                                ML Prediction
+                            </span>
 
-                            ✓ Mark as Handled
+                            <span class="service-status">
+                                ● Active
+                            </span>
+                        </div>
 
-                        </button>
+
+                        <div class="service">
+                            <span class="service-name">
+                                Camera
+                            </span>
+
+                            <span class="service-status">
+                                ● Ready
+                            </span>
+                        </div>
 
                     </div>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- QUICK ACTIONS -->
-
-            <div class="card">
-
-                <div class="card-header">
-
-                    <h2>
-                        Quick Actions
-                    </h2>
-
-                </div>
-
-
-                <div class="quick-actions">
-
-                    <button
-                        class="quick-btn"
-                        onclick="showSection('patients')">
-
-                        <div>👤</div>
-
-                        View Patients
-
-                    </button>
-
-
-                    <button
-                        class="quick-btn"
-                        onclick="showSection('requests')">
-
-                        <div>🔔</div>
-
-                        Live Requests
-
-                    </button>
-
-
-                    <button
-                        class="quick-btn"
-                        onclick="showSection('history')">
-
-                        <div>📋</div>
-
-                        View History
-
-                    </button>
-
-
-                    <button
-                        class="quick-btn"
-                        onclick="showSection('analytics')">
-
-                        <div>📊</div>
-
-                        Analytics
-
-                    </button>
 
                 </div>
 
@@ -1584,104 +1611,218 @@
         </section>
 
 
-
-        <!-- =================================================
+        <!-- =========================
              PATIENTS
-        ================================================= -->
+        ========================= -->
 
-        <section id="patients"
-                 class="section">
+        <section id="patients" class="section">
+
+            <div class="page-heading">
+
+                <h2>Patient Information</h2>
+
+                <p>
+                    Detailed information for the currently monitored patient.
+                </p>
+
+            </div>
 
 
-            <div class="card">
+            <div class="patient-page">
 
-                <div class="card-header">
 
-                    <h2>
-                        👤 Patient Monitoring
-                    </h2>
+                <div class="card">
 
-                    <span>
-                        Active Patient
-                    </span>
+                    <div class="patient-profile-card">
+
+                        <div class="patient-top">
+
+                            <div class="patient-photo">
+                                ♙
+                            </div>
+
+                            <div>
+
+                                <div
+                                    class="patient-name"
+                                    id="patientNameLarge"
+                                >
+                                    Patient 01
+                                </div>
+
+                                <div
+                                    class="patient-id"
+                                    id="patientIdLarge"
+                                >
+                                    ID: Patient 01
+                                </div>
+
+                                <div class="monitoring">
+                                    <span class="dot"></span>
+                                    CURRENTLY MONITORING
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="patient-info">
+
+                            <div class="info-box">
+                                <div class="info-label">Age</div>
+                                <div
+                                    class="info-value"
+                                    id="patientAgeLarge"
+                                >
+                                    —
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <div class="info-label">Room Number</div>
+                                <div
+                                    class="info-value"
+                                    id="patientRoomLarge"
+                                >
+                                    —
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <div class="info-label">Patient ID</div>
+                                <div
+                                    class="info-value"
+                                    id="patientIdValueLarge"
+                                >
+                                    —
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <div class="info-label">Status</div>
+                                <div class="info-value">
+                                    Stable
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
 
-                <div class="patient-box">
+                <div class="card">
 
-                    <div class="patient-avatar">
-                        👤
+                    <div class="card-header">
+
+                        <div>
+                            <div class="card-title">
+                                Medical Information
+                            </div>
+
+                            <div class="card-subtitle">
+                                Patient medical details
+                            </div>
+                        </div>
+
                     </div>
 
 
-                    <div class="patient-info">
+                    <div class="card-body">
 
-                        <h3 id="patientsName">
-                            Patient 01
-                        </h3>
+                        <div class="medical-info">
+
+                            <h4>
+                                Medical Information
+                            </h4>
+
+                            <p id="medicalInformationLarge">
+                                No medical information available.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             LIVE REQUESTS
+        ========================= -->
+
+        <section id="live" class="section">
+
+            <div class="page-heading">
+
+                <h2>Live Requests</h2>
+
+                <p>
+                    Incoming patient requests that require nurse attention.
+                </p>
+
+            </div>
+
+
+            <div id="liveRequestsList">
+
+                <div class="card">
+
+                    <div class="empty">
+
+                        <div class="empty-icon">✓</div>
+
+                        <h3>No pending requests</h3>
 
                         <p>
-                            Status: Active Monitoring
+                            All requests have been handled.
                         </p>
 
                     </div>
 
                 </div>
 
+            </div>
 
-                <div class="monitoring">
+        </section>
 
-                    ● Gesture monitoring is active
 
-                </div>
+        <!-- =========================
+             EMERGENCY
+        ========================= -->
 
-                <br>
+        <section id="emergency" class="section">
 
-                <p style="color:#7b8496;font-size:13px;">
-                    The system continuously monitors the patient's
-                    hand gestures through the webcam and sends
-                    recognized requests to the nurse dashboard.
+            <div class="page-heading">
+
+                <h2>Emergency Requests</h2>
+
+                <p>
+                    High-priority patient assistance alerts.
                 </p>
 
             </div>
 
-        </section>
 
+            <div id="emergencyList">
 
+                <div class="card">
 
-        <!-- =================================================
-             LIVE REQUESTS
-        ================================================= -->
+                    <div class="empty">
 
-        <section id="requests"
-                 class="section">
+                        <div class="empty-icon">✓</div>
 
+                        <h3>No emergency requests</h3>
 
-            <div class="card">
-
-                <div class="card-header">
-
-                    <h2>
-                        🔔 Live Requests
-                    </h2>
-
-                    <span>
-                        Automatically updated
-                    </span>
-
-                </div>
-
-
-                <div id="liveRequestBox">
-
-                    <div style="
-                        text-align:center;
-                        padding:50px;
-                        color:#7b8496;
-                    ">
-
-                        Waiting for patient gesture...
+                        <p>
+                            There are currently no emergency alerts.
+                        </p>
 
                     </div>
 
@@ -1692,109 +1833,43 @@
         </section>
 
 
-
-        <!-- =================================================
-             EMERGENCY
-        ================================================= -->
-
-        <section id="emergency"
-                 class="section">
-
-
-            <div class="card">
-
-                <div class="card-header">
-
-                    <h2>
-                        🚨 Emergency Center
-                    </h2>
-
-                    <span>
-                        Priority Requests
-                    </span>
-
-                </div>
-
-
-                <div id="emergencyList">
-
-                    <div style="
-                        text-align:center;
-                        padding:50px;
-                        color:#7b8496;
-                    ">
-
-                        No emergency requests.
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
+        <!-- =========================
              HISTORY
-        ================================================= -->
+        ========================= -->
 
-        <section id="history"
-                 class="section">
+        <section id="history" class="section">
 
+            <div class="page-heading">
 
-            <div class="card">
+                <h2>Request History</h2>
 
-                <div class="card-header">
+                <p>
+                    Complete history of gesture-based patient requests.
+                </p>
 
-                    <h2>
-                        📋 Request History
-                    </h2>
-
-                    <span>
-                        Latest 50 requests
-                    </span>
-
-                </div>
+            </div>
 
 
-                <div class="table-wrapper">
+            <div class="table-card">
+
+                <div class="table-wrap">
 
                     <table>
 
                         <thead>
 
                             <tr>
-
-                                <th>
-                                    Patient
-                                </th>
-
-                                <th>
-                                    Time
-                                </th>
-
-                                <th>
-                                    Request
-                                </th>
-
-                                <th>
-                                    Confidence
-                                </th>
-
-                                <th>
-                                    Status
-                                </th>
-
+                                <th>Patient</th>
+                                <th>Gesture</th>
+                                <th>Time</th>
+                                <th>Confidence</th>
+                                <th>Status</th>
+                                <th>Action</th>
                             </tr>
 
                         </thead>
 
-
-                        <tbody id="historyBody">
-
-                        </tbody>
+                        <tbody id="historyTable"></tbody>
 
                     </table>
 
@@ -1805,55 +1880,93 @@
         </section>
 
 
-
-        <!-- =================================================
+        <!-- =========================
              ANALYTICS
-        ================================================= -->
+        ========================= -->
 
-        <section id="analytics"
-                 class="section">
+        <section id="analytics" class="section">
+
+            <div class="page-heading">
+
+                <h2>Analytics</h2>
+
+                <p>
+                    Overview of system activity and performance.
+                </p>
+
+            </div>
 
 
-            <div class="bottom-grid">
+            <div class="analytics-grid">
 
 
-                <div class="card">
+                <div class="analytics-card">
 
-                    <div class="card-header">
+                    <h3>Total Requests</h3>
 
-                        <h2>
-                            📊 Gesture Distribution
-                        </h2>
-
+                    <div
+                        class="big-number"
+                        id="analyticsTotal"
+                    >
+                        0
                     </div>
 
-
-                    <div class="chart-container">
-
-                        <canvas id="gestureChart">
-                        </canvas>
-
+                    <div class="big-number-label">
+                        Patient assistance requests
                     </div>
 
                 </div>
 
 
-                <div class="card">
+                <div class="analytics-card">
 
-                    <div class="card-header">
+                    <h3>Resolution Rate</h3>
 
-                        <h2>
-                            📈 Request Activity
-                        </h2>
-
+                    <div
+                        class="big-number"
+                        id="analyticsRate"
+                    >
+                        0%
                     </div>
 
+                    <div class="big-number-label">
+                        Requests successfully handled
+                    </div>
 
-                    <div class="chart-container">
+                </div>
 
-                        <canvas id="activityChart">
-                        </canvas>
 
+                <div class="analytics-card">
+
+                    <h3>ML Model</h3>
+
+                    <div
+                        class="big-number"
+                        style="font-size:22px;color:#20a05a;"
+                    >
+                        ACTIVE
+                    </div>
+
+                    <div class="big-number-label">
+                        Real-time gesture prediction
+                    </div>
+
+                </div>
+
+
+                <div class="analytics-card">
+
+                    <h3>System Health</h3>
+
+                    <div
+                        class="big-number"
+                        style="font-size:22px;color:#20a05a;"
+                    >
+                        100%
+                    </div>
+
+                    <div class="big-number-label">
+                        Services operational
                     </div>
 
                 </div>
@@ -1861,1080 +1974,1085 @@
             </div>
 
         </section>
-
-
-
-        <!-- =================================================
-             ML MODEL
-        ================================================= -->
-
-        <section id="model"
-                 class="section">
-
-
-            <div class="card">
-
-                <div class="card-header">
-
-                    <h2>
-                        🤖 Machine Learning Performance
-                    </h2>
-
-                    <span>
-                        Test Accuracy
-                    </span>
-
-                </div>
-
-
-                <div class="model-row">
-
-                    <div class="model-top">
-
-                        <span>
-                            KNN
-                        </span>
-
-                        <span>
-                            99.75%
-                        </span>
-
-                    </div>
-
-                    <div class="model-bar">
-
-                        <div
-                            class="model-fill"
-                            style="width:99.75%">
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="model-row">
-
-                    <div class="model-top">
-
-                        <span>
-                            SVM
-                        </span>
-
-                        <span>
-                            99.75%
-                        </span>
-
-                    </div>
-
-                    <div class="model-bar">
-
-                        <div
-                            class="model-fill"
-                            style="width:99.75%">
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="model-row">
-
-                    <div class="model-top">
-
-                        <span>
-                            Random Forest
-                        </span>
-
-                        <span>
-                            99.75%
-                        </span>
-
-                    </div>
-
-                    <div class="model-bar">
-
-                        <div
-                            class="model-fill"
-                            style="width:99.75%">
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="model-row">
-
-                    <div class="model-top">
-
-                        <span>
-                            Decision Tree
-                        </span>
-
-                        <span>
-                            98.75%
-                        </span>
-
-                    </div>
-
-                    <div class="model-bar">
-
-                        <div
-                            class="model-fill"
-                            style="width:98.75%">
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="best-model">
-
-                    🏆 Best Model: KNN — 99.75% Accuracy
-
-                </div>
-
-            </div>
-
-        </section>
-
 
     </div>
 
 </main>
 
 
+<div class="toast" id="toast">
+    Request handled successfully
+</div>
+
 
 <script>
 
+    /* =========================
+       PAGE INFORMATION
+    ========================= */
 
-// ======================================================
-// NAVIGATION
-// ======================================================
+    const pageInfo = {
 
-function showSection(
-    sectionId,
-    element
-) {
+        dashboard: {
+            title: "Dashboard",
+            subtitle: "Smart patient monitoring & assistance"
+        },
 
+        patients: {
+            title: "Patients",
+            subtitle: "Patient information and monitoring"
+        },
 
-    document
-        .querySelectorAll(".section")
-        .forEach(section => {
+        live: {
+            title: "Live Requests",
+            subtitle: "Incoming patient assistance requests"
+        },
 
-            section.classList.remove(
-                "active"
-            );
+        emergency: {
+            title: "Emergency",
+            subtitle: "High-priority patient assistance"
+        },
 
-        });
+        history: {
+            title: "Request History",
+            subtitle: "Complete gesture request activity"
+        },
 
-
-    document
-        .getElementById(sectionId)
-        .classList.add("active");
-
-
-    document
-        .querySelectorAll(".nav-item")
-        .forEach(item => {
-
-            item.classList.remove(
-                "active"
-            );
-
-        });
-
-
-    if (element) {
-
-        element.classList.add(
-            "active"
-        );
-
-    }
-
-
-    const titles = {
-
-        dashboard:
-            "Dashboard",
-
-        patients:
-            "Patients",
-
-        requests:
-            "Live Requests",
-
-        emergency:
-            "Emergency Center",
-
-        history:
-            "Request History",
-
-        analytics:
-            "Analytics",
-
-        model:
-            "ML Model"
+        analytics: {
+            title: "Analytics",
+            subtitle: "System activity and performance"
+        }
 
     };
 
 
-    document.getElementById(
-        "pageTitle"
-    ).textContent =
-        titles[sectionId];
+    /* =========================
+       DATE
+    ========================= */
 
+    function updateDate() {
 
-    if (
-        sectionId === "analytics"
-    ) {
+        const now = new Date();
 
-        setTimeout(
-            createCharts,
-            100
-        );
+        document.getElementById("dateDisplay").textContent =
+            now.toLocaleDateString(
+                "en-IN",
+                {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                }
+            );
 
     }
 
-}
+    updateDate();
 
 
+    /* =========================
+       NAVIGATION
+    ========================= */
 
-// ======================================================
-// HANDLE REQUEST
-// ======================================================
+    function showSection(sectionId, button) {
 
-async function handleRequest() {
-
-    try {
-
-        await fetch(
-            "/api/handle-request",
-            {
-                method: "POST"
-            }
-        );
-
-        updateDashboard();
-
-    }
-    catch (error) {
-
-        console.log(error);
-
-    }
-
-}
+        document.querySelectorAll(".section")
+            .forEach(section => {
+                section.classList.remove("active");
+            });
 
 
+        const target =
+            document.getElementById(sectionId);
 
-// ======================================================
-// UPDATE DASHBOARD
-// ======================================================
-
-async function updateDashboard() {
-
-    try {
-
-
-        // -----------------------------------------------
-        // PATIENT
-        // -----------------------------------------------
-
-        const patientResponse =
-            await fetch(
-                "/api/patient"
-            );
-
-
-        const patient =
-            await patientResponse.json();
-
-
-        document.getElementById(
-            "patientName"
-        ).textContent =
-            patient.name;
-
-
-        document.getElementById(
-            "patientId"
-        ).textContent =
-            patient.id;
-
-
-        document.getElementById(
-            "patientsName"
-        ).textContent =
-            patient.name;
-
-
-        document.getElementById(
-            "emergencyPatient"
-        ).textContent =
-            patient.name;
-
-
-
-        // -----------------------------------------------
-        // CURRENT REQUEST
-        // -----------------------------------------------
-
-        const requestResponse =
-            await fetch(
-                "/api/current-request"
-            );
-
-
-        const current =
-            await requestResponse.json();
-
-
-        document.getElementById(
-            "gesture"
-        ).textContent =
-            current.gesture;
-
-
-        const confidence =
-            Number(
-                current.confidence || 0
-            );
-
-
-        document.getElementById(
-            "confidence"
-        ).textContent =
-            "Confidence: " +
-            confidence.toFixed(1) +
-            "%";
-
-
-        document.getElementById(
-            "confidenceBar"
-        ).style.width =
-            confidence + "%";
-
-
-        document.getElementById(
-            "requestTime"
-        ).textContent =
-            current.time;
-
-
-        const status =
-            document.getElementById(
-                "status"
-            );
-
-
-        status.textContent =
-            current.status;
-
-
-        status.classList.toggle(
-            "handled",
-            current.status === "Handled"
-        );
-
-
-
-        // -----------------------------------------------
-        // EMERGENCY
-        // -----------------------------------------------
-
-        const emergencyAlert =
-            document.getElementById(
-                "emergencyAlert"
-            );
-
-
-        if (
-            current.gesture ===
-            "EMERGENCY"
-            &&
-            current.status ===
-            "New"
-        ) {
-
-            emergencyAlert.classList.add(
-                "show"
-            );
-
-        }
-        else {
-
-            emergencyAlert.classList.remove(
-                "show"
-            );
-
+        if (target) {
+            target.classList.add("active");
         }
 
 
-
-        // -----------------------------------------------
-        // HISTORY
-        // -----------------------------------------------
-
-        const historyResponse =
-            await fetch(
-                "/api/history"
-            );
+        document.querySelectorAll(".menu button")
+            .forEach(item => {
+                item.classList.remove("active");
+            });
 
 
-        const history =
-            await historyResponse.json();
+        if (button) {
+            button.classList.add("active");
+        }
 
 
-        let pending = 0;
+        document.getElementById("pageTitle").textContent =
+            pageInfo[sectionId].title;
 
-        let handled = 0;
+        document.getElementById("pageSubtitle").textContent =
+            pageInfo[sectionId].subtitle;
 
-        let emergencies = 0;
+    }
 
 
-        history.forEach(item => {
+    function showSectionById(sectionId) {
 
-            if (
-                item.status === "New"
-            ) {
+        const buttons =
+            document.querySelectorAll(".menu button");
 
-                pending++;
+        buttons.forEach(button => {
 
-            }
-            else {
-
-                handled++;
-
-            }
-
+            button.classList.remove("active");
 
             if (
-                item.gesture ===
-                "EMERGENCY"
+                button.getAttribute("onclick") &&
+                button.getAttribute("onclick")
+                    .includes("'" + sectionId + "'")
             ) {
 
-                emergencies++;
+                button.classList.add("active");
 
             }
 
         });
 
 
+        document.querySelectorAll(".section")
+            .forEach(section => {
+                section.classList.remove("active");
+            });
+
+
+        document.getElementById(sectionId)
+            .classList.add("active");
+
+
+        document.getElementById("pageTitle").textContent =
+            pageInfo[sectionId].title;
+
+        document.getElementById("pageSubtitle").textContent =
+            pageInfo[sectionId].subtitle;
+
+    }
+
+
+    /* =========================
+       TOAST
+    ========================= */
+
+    function showToast(message) {
+
+        const toast =
+            document.getElementById("toast");
+
+        toast.textContent = message;
+
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2200);
+
+    }
+
+
+    /* =========================
+       PATIENT
+    ========================= */
+
+    async function loadPatient() {
+
+        try {
+
+            const response =
+                await fetch("/api/patient");
+
+            const patient =
+                await response.json();
+
+
+            if (!response.ok) {
+                return;
+            }
+
+
+            document.getElementById("patientName").textContent =
+                patient.name || "Patient";
+
+            document.getElementById("patientId").textContent =
+                "ID: " + (patient.id || "—");
+
+            document.getElementById("patientAge").textContent =
+                patient.age ?? "—";
+
+            document.getElementById("patientRoom").textContent =
+                patient.room_number || "—";
+
+            document.getElementById("patientMedical").textContent =
+                patient.medical_information || "—";
+
+
+            document.getElementById("patientNameLarge").textContent =
+                patient.name || "Patient";
+
+            document.getElementById("patientIdLarge").textContent =
+                "ID: " + (patient.id || "—");
+
+            document.getElementById("patientAgeLarge").textContent =
+                patient.age ?? "—";
+
+            document.getElementById("patientRoomLarge").textContent =
+                patient.room_number || "—";
+
+            document.getElementById("patientIdValueLarge").textContent =
+                patient.id || "—";
+
+            document.getElementById("medicalInformationLarge").textContent =
+                patient.medical_information ||
+                "No medical information available.";
+
+        }
+        catch (error) {
+
+            console.log("Patient error:", error);
+
+        }
+
+    }
+
+
+    /* =========================
+       CURRENT REQUEST
+    ========================= */
+
+    async function loadCurrentRequest() {
+
+        try {
+
+            const response =
+                await fetch("/api/current-request");
+
+            const data =
+                await response.json();
+
+
+            document.getElementById("liveGesture").textContent =
+                data.gesture || "No request";
+
+
+            document.getElementById("liveConfidence").innerHTML =
+                "Confidence: <strong>" +
+                Number(data.confidence || 0).toFixed(1) +
+                "%</strong>";
+
+
+            document.getElementById("liveTime").textContent =
+                data.time || "Waiting for gesture...";
+
+
+            const status =
+                document.getElementById("liveStatus");
+
+
+            if (data.status === "Handled") {
+
+                status.textContent = "HANDLED";
+                status.className =
+                    "badge badge-handled";
+
+            }
+            else if (
+                data.gesture &&
+                data.gesture !== "No request"
+            ) {
+
+                status.textContent = "NEW";
+                status.className =
+                    "badge badge-new";
+
+            }
+            else {
+
+                status.textContent = "WAITING";
+                status.className =
+                    "badge badge-handled";
+
+            }
+
+        }
+        catch (error) {
+
+            console.log(
+                "Current request error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /* =========================
+       HANDLE REQUEST
+    ========================= */
+
+    async function handleRequest(requestId = null) {
+
+        try {
+
+            const options = {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            };
+
+
+            if (requestId !== null) {
+
+                options.body =
+                    JSON.stringify({
+                        request_id: requestId
+                    });
+
+            }
+
+
+            const response =
+                await fetch(
+                    "/api/handle-request",
+                    options
+                );
+
+
+            if (response.ok) {
+
+                showToast(
+                    "Request marked as handled ✓"
+                );
+
+                await updateDashboard();
+
+            }
+
+        }
+        catch (error) {
+
+            console.log(
+                "Handle error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /* =========================
+       HISTORY
+    ========================= */
+
+    async function loadHistory() {
+
+        try {
+
+            const response =
+                await fetch("/api/history");
+
+            const history =
+                await response.json();
+
+
+            updateStats(history);
+
+            renderRecent(history);
+
+            renderHistory(history);
+
+            renderLiveRequests(history);
+
+            renderEmergency(history);
+
+        }
+        catch (error) {
+
+            console.log(
+                "History error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /* =========================
+       STATS
+    ========================= */
+
+    function updateStats(history) {
+
+        const total =
+            history.length;
+
+        const pending =
+            history.filter(
+                item => item.status !== "Handled"
+            ).length;
+
+        const handled =
+            history.filter(
+                item => item.status === "Handled"
+            ).length;
+
+        const emergency =
+            history.filter(
+                item =>
+                    String(item.gesture)
+                        .toLowerCase()
+                        .includes("emergency")
+            ).length;
+
+
         document.getElementById(
             "totalRequests"
-        ).textContent =
-            history.length;
+        ).textContent = total;
 
 
         document.getElementById(
             "pendingRequests"
-        ).textContent =
-            pending;
+        ).textContent = pending;
 
 
         document.getElementById(
             "handledRequests"
-        ).textContent =
-            handled;
+        ).textContent = handled;
 
 
         document.getElementById(
             "emergencyRequests"
+        ).textContent = emergency;
+
+
+        document.getElementById(
+            "analyticsTotal"
+        ).textContent = total;
+
+
+        const percentage =
+            total > 0
+                ? Math.round(
+                    (handled / total) * 100
+                )
+                : 0;
+
+
+        document.getElementById(
+            "handledPercentage"
         ).textContent =
-            emergencies;
+            percentage + "%";
 
 
+        document.getElementById(
+            "handledProgress"
+        ).style.width =
+            percentage + "%";
 
-        // -----------------------------------------------
-        // HISTORY TABLE
-        // -----------------------------------------------
 
-        const historyBody =
+        document.getElementById(
+            "analyticsRate"
+        ).textContent =
+            percentage + "%";
+
+    }
+
+
+    /* =========================
+       RECENT REQUESTS
+    ========================= */
+
+    function renderRecent(history) {
+
+        const container =
             document.getElementById(
-                "historyBody"
+                "recentRequests"
             );
 
 
-        historyBody.innerHTML = "";
+        const recent =
+            history.slice(0, 5);
+
+
+        if (!recent.length) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+
+                    <div class="empty-icon">
+                        📋
+                    </div>
+
+                    <h3>
+                        No requests yet
+                    </h3>
+
+                    <p>
+                        New requests will appear here.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        container.innerHTML = "";
+
+
+        recent.forEach(item => {
+
+            const div =
+                document.createElement("div");
+
+            div.className =
+                "activity";
+
+
+            const handled =
+                item.status === "Handled";
+
+
+            div.innerHTML = `
+
+                <div class="activity-icon">
+                    ✋
+                </div>
+
+                <div class="activity-main">
+
+                    <strong>
+                        ${escapeHtml(
+                            item.gesture ||
+                            "Unknown request"
+                        )}
+                    </strong>
+
+                    <span>
+                        ${
+                            escapeHtml(
+                                item.patient ||
+                                item.patient_id ||
+                                "Patient"
+                            )
+                        }
+                        •
+                        ${
+                            escapeHtml(
+                                item.time ||
+                                "--"
+                            )
+                        }
+                    </span>
+
+                </div>
+
+                <span class="
+                    badge
+                    ${
+                        handled
+                            ? "badge-handled"
+                            : "badge-new"
+                    }
+                ">
+
+                    ${
+                        handled
+                            ? "HANDLED"
+                            : "PENDING"
+                    }
+
+                </span>
+
+            `;
+
+
+            container.appendChild(div);
+
+        });
+
+    }
+
+
+    /* =========================
+       LIVE REQUESTS
+    ========================= */
+
+    function renderLiveRequests(history) {
+
+        const container =
+            document.getElementById(
+                "liveRequestsList"
+            );
+
+
+        const pending =
+            history.filter(
+                item => item.status !== "Handled"
+            );
+
+
+        if (!pending.length) {
+
+            container.innerHTML = `
+
+                <div class="card">
+
+                    <div class="empty">
+
+                        <div class="empty-icon">
+                            ✓
+                        </div>
+
+                        <h3>
+                            No pending requests
+                        </h3>
+
+                        <p>
+                            All patient requests have been handled.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        container.innerHTML = "";
+
+
+        pending.forEach(item => {
+
+            const card =
+                document.createElement("div");
+
+            card.className =
+                "request-card";
+
+
+            card.innerHTML = `
+
+                <div class="request-left">
+
+                    <div class="request-icon">
+                        ✋
+                    </div>
+
+                    <div>
+
+                        <h3>
+                            ${escapeHtml(
+                                item.gesture ||
+                                "Unknown"
+                            )}
+                        </h3>
+
+                        <p>
+                            ${
+                                escapeHtml(
+                                    item.patient ||
+                                    item.patient_id ||
+                                    "Patient"
+                                )
+                            }
+                            •
+                            ${
+                                escapeHtml(
+                                    item.time ||
+                                    "--"
+                                )
+                            }
+                            •
+                            Confidence:
+                            ${
+                                Number(
+                                    item.confidence || 0
+                                ).toFixed(1)
+                            }%
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <button
+                    class="btn btn-primary"
+                    onclick="handleRequest(${item.id})"
+                >
+                    ✓ Attend
+                </button>
+
+            `;
+
+
+            container.appendChild(card);
+
+        });
+
+    }
+
+
+    /* =========================
+       HISTORY TABLE
+    ========================= */
+
+    function renderHistory(history) {
+
+        const table =
+            document.getElementById(
+                "historyTable"
+            );
+
+
+        if (!history.length) {
+
+            table.innerHTML = `
+
+                <tr>
+
+                    <td colspan="6">
+
+                        <div class="empty">
+
+                            <div class="empty-icon">
+                                📋
+                            </div>
+
+                            <h3>
+                                No request history
+                            </h3>
+
+                            <p>
+                                Requests will appear here.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        table.innerHTML = "";
 
 
         history.forEach(item => {
 
-
             const row =
-                document.createElement(
-                    "tr"
-                );
+                document.createElement("tr");
 
 
-            const emergency =
-                item.gesture ===
-                "EMERGENCY";
+            const handled =
+                item.status === "Handled";
 
 
             row.innerHTML = `
 
                 <td>
-                    ${item.patient}
+                    <strong>
+                        ${escapeHtml(
+                            item.patient ||
+                            item.patient_id ||
+                            "Patient"
+                        )}
+                    </strong>
                 </td>
 
                 <td>
-                    ${item.time}
+                    ${escapeHtml(
+                        item.gesture ||
+                        "Unknown"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.time ||
+                        "--"
+                    )}
+                </td>
+
+                <td>
+                    ${
+                        Number(
+                            item.confidence || 0
+                        ).toFixed(1)
+                    }%
                 </td>
 
                 <td>
 
                     <span class="
-                        gesture-badge
-                        ${emergency
-                            ? "emergency-badge"
-                            : ""}
+                        badge
+                        ${
+                            handled
+                                ? "badge-handled"
+                                : "badge-new"
+                        }
                     ">
 
-                        ${item.gesture}
+                        ${
+                            handled
+                                ? "HANDLED"
+                                : "PENDING"
+                        }
 
                     </span>
 
                 </td>
 
                 <td>
-                    ${Number(
-                        item.confidence
-                    ).toFixed(1)}%
-                </td>
 
-                <td>
+                    ${
+                        handled
 
-                    <span class="
-                        status-badge
-                        ${item.status === "Handled"
-                            ? "status-handled"
-                            : ""}
-                    ">
+                        ?
 
-                        ${item.status}
+                        `
+                        <span
+                            style="
+                                color:#20a05a;
+                                font-size:8px;
+                                font-weight:700;
+                            "
+                        >
+                            ✓ Completed
+                        </span>
+                        `
 
-                    </span>
+                        :
+
+                        `
+                        <button
+                            class="attend"
+                            onclick="handleRequest(${item.id})"
+                        >
+                            Attend
+                        </button>
+                        `
+                    }
 
                 </td>
 
             `;
 
 
-            historyBody.appendChild(
-                row
-            );
+            table.appendChild(row);
 
         });
 
-
-
-        // -----------------------------------------------
-        // LIVE REQUEST
-        // -----------------------------------------------
-
-        updateLiveRequest(
-            current
-        );
-
-
-        // -----------------------------------------------
-        // EMERGENCY LIST
-        // -----------------------------------------------
-
-        updateEmergencyList(
-            history
-        );
-
-
-    }
-    catch (error) {
-
-        console.log(
-            "Dashboard error:",
-            error
-        );
-
-    }
-
-}
-
-
-
-// ======================================================
-// LIVE REQUEST
-// ======================================================
-
-function updateLiveRequest(
-    current
-) {
-
-    const box =
-        document.getElementById(
-            "liveRequestBox"
-        );
-
-
-    if (
-        !current
-        ||
-        current.gesture ===
-        "No request"
-    ) {
-
-        box.innerHTML = `
-
-            <div style="
-                text-align:center;
-                padding:50px;
-                color:#7b8496;
-            ">
-
-                Waiting for patient gesture...
-
-            </div>
-
-        `;
-
-        return;
-
     }
 
 
-    box.innerHTML = `
+    /* =========================
+       EMERGENCY
+    ========================= */
 
-        <div style="
-            padding:20px;
-            border:1px solid #e8ebf2;
-            border-radius:12px;
-        ">
+    function renderEmergency(history) {
 
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                align-items:center;
-            ">
+        const container =
+            document.getElementById(
+                "emergencyList"
+            );
 
-                <div>
 
-                    <div style="
-                        font-size:11px;
-                        color:#7b8496;
-                        text-transform:uppercase;
-                    ">
+        const emergencies =
+            history.filter(item =>
+                String(item.gesture)
+                    .toLowerCase()
+                    .includes("emergency")
+            );
 
-                        ${current.time}
 
-                    </div>
+        if (!emergencies.length) {
 
-                    <div style="
-                        font-size:24px;
-                        font-weight:700;
-                        margin-top:8px;
-                    ">
+            container.innerHTML = `
 
-                        ${current.gesture}
+                <div class="card">
+
+                    <div class="empty">
+
+                        <div class="empty-icon">
+                            ✓
+                        </div>
+
+                        <h3>
+                            No emergency requests
+                        </h3>
+
+                        <p>
+                            No active emergency alerts.
+                        </p>
 
                     </div>
 
                 </div>
 
+            `;
 
-                <div style="
-                    text-align:right;
-                ">
+            return;
 
-                    <div style="
-                        font-size:11px;
-                        color:#7b8496;
-                    ">
-
-                        Confidence
-
-                    </div>
-
-                    <strong>
-
-                        ${Number(
-                            current.confidence
-                        ).toFixed(1)}%
-
-                    </strong>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
-
-}
+        }
 
 
-
-// ======================================================
-// EMERGENCY LIST
-// ======================================================
-
-function updateEmergencyList(
-    history
-) {
-
-    const list =
-        document.getElementById(
-            "emergencyList"
-        );
+        container.innerHTML = "";
 
 
-    const emergencies =
-        history.filter(
-            item =>
-                item.gesture ===
-                "EMERGENCY"
-        );
+        emergencies.forEach(item => {
 
+            const handled =
+                item.status === "Handled";
 
-    if (
-        emergencies.length === 0
-    ) {
-
-        list.innerHTML = `
-
-            <div style="
-                text-align:center;
-                padding:50px;
-                color:#7b8496;
-            ">
-
-                ✓ No emergency requests.
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    list.innerHTML = "";
-
-
-    emergencies.forEach(
-        item => {
 
             const div =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
-
-            div.style.cssText = `
-                padding:18px;
-                margin-bottom:10px;
-                border-radius:12px;
-                background:#fff0f3;
-                border:1px solid #ffd6df;
-            `;
+            div.className =
+                "emergency";
 
 
             div.innerHTML = `
 
-                <strong style="
-                    color:#ef476f;
-                ">
+                <div class="emergency-icon">
+                    !
+                </div>
 
-                    🚨 EMERGENCY
+                <div class="emergency-content">
 
-                </strong>
+                    <h3>
+                        ${escapeHtml(
+                            item.gesture ||
+                            "Emergency"
+                        )}
+                    </h3>
 
-                <div style="
-                    margin-top:7px;
-                    font-size:13px;
-                ">
-
-                    ${item.patient}
-
-                    ·
-
-                    ${item.time}
+                    <p>
+                        ${
+                            escapeHtml(
+                                item.patient ||
+                                item.patient_id ||
+                                "Patient"
+                            )
+                        }
+                        •
+                        ${
+                            escapeHtml(
+                                item.time ||
+                                "--"
+                            )
+                        }
+                        •
+                        Confidence:
+                        ${
+                            Number(
+                                item.confidence || 0
+                            ).toFixed(1)
+                        }%
+                    </p>
 
                 </div>
 
-                <div style="
-                    margin-top:5px;
-                    color:#7b8496;
-                    font-size:12px;
-                ">
+                ${
+                    handled
 
-                    Confidence:
-                    ${Number(
-                        item.confidence
-                    ).toFixed(1)}%
+                    ?
 
-                    ·
+                    `
+                    <span class="badge badge-handled">
+                        HANDLED
+                    </span>
+                    `
 
-                    ${item.status}
+                    :
 
-                </div>
+                    `
+                    <button
+                        class="btn btn-primary"
+                        onclick="handleRequest(${item.id})"
+                    >
+                        Attend
+                    </button>
+                    `
+                }
 
             `;
 
 
-            list.appendChild(
-                div
-            );
-
-        }
-    );
-
-}
-
-
-
-// ======================================================
-// CHARTS
-// ======================================================
-
-let gestureChart = null;
-
-let activityChart = null;
-
-
-async function createCharts() {
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/history"
-            );
-
-
-        const history =
-            await response.json();
-
-
-        const counts = {
-
-            "CALL NURSE": 0,
-
-            "I'M OKAY": 0,
-
-            "NEED FOOD / WATER": 0,
-
-            "EMERGENCY": 0
-
-        };
-
-
-        history.forEach(item => {
-
-            if (
-                counts[item.gesture]
-                !== undefined
-            ) {
-
-                counts[item.gesture]++;
-
-            }
+            container.appendChild(div);
 
         });
 
-
-        const gestureCanvas =
-            document.getElementById(
-                "gestureChart"
-            );
-
-
-        if (gestureChart) {
-
-            gestureChart.destroy();
-
-        }
-
-
-        gestureChart =
-            new Chart(
-                gestureCanvas,
-                {
-
-                    type: "doughnut",
-
-                    data: {
-
-                        labels:
-                            Object.keys(
-                                counts
-                            ),
-
-                        datasets: [
-
-                            {
-
-                                data:
-                                    Object.values(
-                                        counts
-                                    )
-
-                            }
-
-                        ]
-
-                    },
-
-                    options: {
-
-                        responsive: true,
-
-                        maintainAspectRatio:
-                            false,
-
-                        plugins: {
-
-                            legend: {
-
-                                position:
-                                    "bottom"
-
-                            }
-
-                        }
-
-                    }
-
-                }
-            );
-
-
-
-        // ----------------------------------------------
-        // ACTIVITY CHART
-        // ----------------------------------------------
-
-        const activityCanvas =
-            document.getElementById(
-                "activityChart"
-            );
-
-
-        if (activityChart) {
-
-            activityChart.destroy();
-
-        }
-
-
-        const recent =
-            history.slice(
-                0,
-                10
-            ).reverse();
-
-
-        activityChart =
-            new Chart(
-                activityCanvas,
-                {
-
-                    type: "line",
-
-                    data: {
-
-                        labels:
-                            recent.map(
-                                item =>
-                                    item.time
-                            ),
-
-                        datasets: [
-
-                            {
-
-                                label:
-                                    "Requests",
-
-                                data:
-                                    recent.map(
-                                        () => 1
-                                    ),
-
-                                tension:
-                                    0.35
-
-                            }
-
-                        ]
-
-                    },
-
-                    options: {
-
-                        responsive: true,
-
-                        maintainAspectRatio:
-                            false,
-
-                        scales: {
-
-                            y: {
-
-                                beginAtZero:
-                                    true,
-
-                                ticks: {
-
-                                    stepSize:
-                                        1
-
-                                }
-
-                            }
-
-                        }
-
-                    }
-
-                }
-
-            );
-
     }
-    catch (error) {
 
-        console.log(error);
+
+    /* =========================
+       ESCAPE HTML
+    ========================= */
+
+    function escapeHtml(value) {
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
 
     }
 
-}
+
+    /* =========================
+       UPDATE DASHBOARD
+    ========================= */
+
+    async function updateDashboard() {
+
+        await loadPatient();
+
+        await loadCurrentRequest();
+
+        await loadHistory();
+
+    }
 
 
+    /* =========================
+       START
+    ========================= */
 
-// ======================================================
-// AUTO REFRESH
-// ======================================================
-
-setInterval(
-    updateDashboard,
-    1000
-);
+    updateDashboard();
 
 
-// INITIAL LOAD
+    /*
+       Refresh data every 2 seconds
+       without reloading the page.
+    */
 
-updateDashboard();
-
+    setInterval(
+        updateDashboard,
+        2000
+    );
 
 </script>
 
-
 </body>
-
 </html>
