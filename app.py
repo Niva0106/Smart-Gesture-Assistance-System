@@ -31,7 +31,7 @@ current_request = {
 # Request history
 # ==========================================
 
-request_history = []
+request_history = [] 
 
 
 # ==========================================

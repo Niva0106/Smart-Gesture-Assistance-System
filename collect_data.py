@@ -3,7 +3,6 @@ import mediapipe as mp
 import csv
 import os
 import time
-import numpy as np
 
 # ==========================================
 # SETTINGS
@@ -45,34 +44,31 @@ options = HandLandmarkerOptions(
 )
 
 # ==========================================
-# CSV FILE
+# CREATE NEW CSV
 # ==========================================
-
-file_exists = os.path.exists(DATA_FILE)
+# "w" means overwrite the old dataset.
+# This prevents old gestures from mixing with new ones.
 
 csv_file = open(
     DATA_FILE,
-    "a",
+    "w",
     newline=""
 )
 
 writer = csv.writer(csv_file)
 
-# Create header only if file is new
-if not file_exists:
-    header = []
+header = []
 
-    for i in range(21):
-        header.extend([
-            f"x{i}",
-            f"y{i}",
-            f"z{i}"
-        ])
+for i in range(21):
+    header.extend([
+        f"x{i}",
+        f"y{i}",
+        f"z{i}"
+    ])
 
-    header.append("gesture")
+header.append("gesture")
 
-    writer.writerow(header)
-
+writer.writerow(header)
 
 # ==========================================
 # Webcam
@@ -81,19 +77,22 @@ if not file_exists:
 camera = cv2.VideoCapture(0)
 
 if not camera.isOpened():
+
     print("ERROR: Could not open webcam.")
+
     csv_file.close()
+
     exit()
 
-print("\n==============================")
+print("\n========================================")
 print(" SMART PATIENT GESTURE DATASET")
-print("==============================")
-print("1 → Call Nurse ✋")
+print("========================================")
+print("1 → Call Nurse ✊ (closed fist)")
 print("2 → I'm Okay 👍")
 print("3 → Need Water / Food ☝️")
-print("4 → Emergency ✌️")
+print("4 → Emergency 🖐️ (five fingers)")
 print("Q → Quit")
-print("==============================")
+print("========================================")
 
 selected_gesture = None
 sample_count = 0
@@ -110,7 +109,9 @@ with HandLandmarker.create_from_options(options) as landmarker:
         success, frame = camera.read()
 
         if not success:
+
             print("Could not read webcam.")
+
             break
 
         frame = cv2.flip(frame, 1)
@@ -134,12 +135,17 @@ with HandLandmarker.create_from_options(options) as landmarker:
         key = cv2.waitKey(1) & 0xFF
 
         if key == ord("q"):
+
             break
 
+        # Select gesture
         if chr(key) in GESTURES:
 
             selected_gesture = GESTURES[chr(key)]
+
             sample_count = 0
+
+            last_sample_time = 0
 
             print(
                 f"\nCollecting: {selected_gesture}"
@@ -155,8 +161,13 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
             current_time = time.time()
 
-            # Save only every SAMPLE_INTERVAL seconds
+            # ==========================================
+            # COLLECT ONLY UP TO 500 SAMPLES
+            # ==========================================
+
             if (
+                sample_count < SAMPLES_PER_GESTURE
+                and
                 current_time - last_sample_time
                 >= SAMPLE_INTERVAL
             ):
@@ -178,10 +189,17 @@ with HandLandmarker.create_from_options(options) as landmarker:
                 csv_file.flush()
 
                 sample_count += 1
+
                 last_sample_time = current_time
 
+                print(
+                    f"\r{selected_gesture}: "
+                    f"{sample_count}/{SAMPLES_PER_GESTURE}",
+                    end=""
+                )
+
             # ==========================================
-            # Draw landmarks
+            # DRAW LANDMARKS
             # ==========================================
 
             for landmark in hand:
@@ -228,15 +246,29 @@ with HandLandmarker.create_from_options(options) as landmarker:
                 2
             )
 
-            cv2.putText(
-                frame,
-                "Move hand slowly",
-                (20, 110),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                (255, 255, 255),
-                2
-            )
+            if sample_count < SAMPLES_PER_GESTURE:
+
+                cv2.putText(
+                    frame,
+                    "Move hand slowly",
+                    (20, 110),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (255, 255, 255),
+                    2
+                )
+
+            else:
+
+                cv2.putText(
+                    frame,
+                    "DONE - Press another number",
+                    (20, 110),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (0, 255, 0),
+                    2
+                )
 
         else:
 
@@ -265,14 +297,18 @@ with HandLandmarker.create_from_options(options) as landmarker:
             frame
         )
 
-
 # ==========================================
 # CLEANUP
 # ==========================================
 
 camera.release()
+
 cv2.destroyAllWindows()
+
 csv_file.close()
 
-print("\nDataset collection stopped.")
+print("\n\n========================================")
+print(" DATASET COLLECTION STOPPED")
+print("========================================")
 print(f"Dataset saved at: {DATA_FILE}")
+print("========================================")

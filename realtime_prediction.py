@@ -11,21 +11,20 @@ from collections import Counter, deque
 # CONFIGURATION
 # ============================================================
 
-MODEL_PATH = "models/random_forest.pkl"
+MODEL_PATH = "models/svm.pkl"
 SCALER_PATH = "data/processed/scaler.pkl"
 LANDMARKER_PATH = "hand_landmarker.task"
 
 SERVER_URL = "http://127.0.0.1:5000/api/gesture"
 
-CONFIDENCE_THRESHOLD = 0.65
+# Minimum confidence required
+CONFIDENCE_THRESHOLD = 0.60
 
-# Number of recent predictions used for stability
-HISTORY_SIZE = 7
+# Faster stability filter
+HISTORY_SIZE = 5
+STABLE_COUNT = 3
 
-# Minimum number of matching predictions
-STABLE_COUNT = 4
-
-# Prevent sending the same request repeatedly
+# Prevent repeated dashboard requests
 REQUEST_COOLDOWN = 5
 
 
@@ -36,10 +35,9 @@ REQUEST_COOLDOWN = 5
 print("\nLoading ML model...")
 
 model = joblib.load(MODEL_PATH)
-
 scaler = joblib.load(SCALER_PATH)
 
-print("✓ Random Forest model loaded")
+print("✓ SVM model loaded")
 print("✓ Scaler loaded")
 
 
@@ -73,10 +71,13 @@ VisionRunningMode = (
 
 
 options = HandLandmarkerOptions(
+
     base_options=BaseOptions(
         model_asset_path=LANDMARKER_PATH
     ),
+
     running_mode=VisionRunningMode.IMAGE,
+
     num_hands=1
 )
 
@@ -95,7 +96,6 @@ prediction_history = deque(
 # ============================================================
 
 last_sent_gesture = None
-
 last_sent_time = 0
 
 stable_gesture = None
@@ -120,11 +120,12 @@ def send_gesture(gesture, confidence):
     ):
         return
 
-
     try:
 
         response = requests.post(
+
             SERVER_URL,
+
             json={
                 "gesture": gesture,
                 "confidence": round(
@@ -132,39 +133,24 @@ def send_gesture(gesture, confidence):
                     2
                 )
             },
-            timeout=2
-        )
 
+            timeout=0.5
+        )
 
         if response.status_code == 200:
 
             print(
-                f"\n✓ Sent to dashboard:"
-                f" {gesture_names.get(gesture, gesture)}"
-                f" ({confidence * 100:.1f}%)"
+                f"\n✓ Sent to dashboard: "
+                f"{gesture_names.get(gesture, gesture)} "
+                f"({confidence * 100:.1f}%)"
             )
 
             last_sent_gesture = gesture
-
             last_sent_time = current_time
-
-        else:
-
-            print(
-                "Dashboard error:",
-                response.status_code
-            )
-
 
     except requests.exceptions.RequestException:
 
-        print(
-            "\n⚠ Could not connect to Flask server."
-        )
-
-        print(
-            "Make sure app.py is running."
-        )
+        pass
 
 
 # ============================================================
@@ -173,12 +159,23 @@ def send_gesture(gesture, confidence):
 
 camera = cv2.VideoCapture(0)
 
-
 if not camera.isOpened():
 
     print("\nERROR: Could not open webcam.")
 
     exit()
+
+
+# Reduce camera resolution for faster processing
+camera.set(
+    cv2.CAP_PROP_FRAME_WIDTH,
+    640
+)
+
+camera.set(
+    cv2.CAP_PROP_FRAME_HEIGHT,
+    480
+)
 
 
 print("\n==============================================")
@@ -187,10 +184,10 @@ print("==============================================")
 
 print("\nGestures:")
 
-print("✋  CALL NURSE")
+print("✊  CALL NURSE")
 print("👍  I'M OKAY")
 print("☝️  NEED FOOD / WATER")
-print("✌️  EMERGENCY")
+print("🖐️  EMERGENCY")
 
 print("\nDashboard:")
 print("http://127.0.0.1:5000")
@@ -214,7 +211,6 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
         success, frame = camera.read()
 
-
         if not success:
 
             print("Could not read webcam.")
@@ -223,15 +219,11 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
 
         # Mirror camera
-
-        frame = cv2.flip(
-            frame,
-            1
-        )
+        frame = cv2.flip(frame, 1)
 
 
         # ----------------------------------------------------
-        # CONVERT TO RGB
+        # RGB CONVERSION
         # ----------------------------------------------------
 
         rgb_frame = cv2.cvtColor(
@@ -247,7 +239,7 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
 
         # ----------------------------------------------------
-        # DETECT HAND
+        # HAND DETECTION
         # ----------------------------------------------------
 
         result = landmarker.detect(
@@ -272,11 +264,10 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
 
             # ------------------------------------------------
-            # EXTRACT 21 LANDMARKS
+            # EXTRACT LANDMARKS
             # ------------------------------------------------
 
             landmarks = []
-
 
             for landmark in hand:
 
@@ -302,7 +293,7 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
 
             # ------------------------------------------------
-            # 21 × 3 = 63 FEATURES
+            # CREATE 63 FEATURES
             # ------------------------------------------------
 
             features = landmarks.flatten()
@@ -341,9 +332,9 @@ with HandLandmarker.create_from_options(options) as landmarker:
             )
 
 
-            # ------------------------------------------------
+            # =================================================
             # STABILITY FILTER
-            # ------------------------------------------------
+            # =================================================
 
             if confidence >= CONFIDENCE_THRESHOLD:
 
@@ -352,7 +343,7 @@ with HandLandmarker.create_from_options(options) as landmarker:
                 )
 
 
-            if len(prediction_history) >= 3:
+            if len(prediction_history) >= STABLE_COUNT:
 
                 most_common = Counter(
                     prediction_history
@@ -379,14 +370,13 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
                     prediction_text = "CHECKING..."
 
-
             else:
 
                 prediction_text = "CHECKING..."
 
 
             # ------------------------------------------------
-            # SEND STABLE GESTURE
+            # SEND TO DASHBOARD
             # ------------------------------------------------
 
             if current_prediction is not None:
@@ -398,7 +388,7 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
 
             # =================================================
-            # DRAW LANDMARKS
+            # DRAW HAND LANDMARKS
             # =================================================
 
             for landmark in hand:
@@ -417,15 +407,15 @@ with HandLandmarker.create_from_options(options) as landmarker:
                 cv2.circle(
                     frame,
                     (x, y),
-                    5,
+                    4,
                     (0, 255, 0),
                     -1
                 )
 
 
-            # ------------------------------------------------
-            # HAND CONNECTIONS
-            # ------------------------------------------------
+            # =================================================
+            # DRAW HAND CONNECTIONS
+            # =================================================
 
             connections = [
 
@@ -494,8 +484,7 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
         else:
 
-            # No hand detected
-
+            # No hand
             prediction_history.clear()
 
             stable_gesture = None
@@ -504,7 +493,7 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
 
         # ====================================================
-        # DISPLAY BOX
+        # DISPLAY
         # ====================================================
 
         cv2.rectangle(
@@ -595,4 +584,6 @@ camera.release()
 
 cv2.destroyAllWindows()
 
-print("\nReal-time prediction stopped.")
+print(
+    "\nReal-time prediction stopped."
+)
