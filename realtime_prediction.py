@@ -6,7 +6,10 @@ import numpy as np
 import requests
 import time
 import threading
-import winsound
+try:
+    import winsound
+except ImportError:
+    winsound = None
 from collections import Counter, deque
 
 # ============================================================
@@ -15,9 +18,9 @@ from collections import Counter, deque
 MODEL_PATH = "models/svm.pkl"
 SCALER_PATH = "data/processed/scaler.pkl"
 LANDMARKER_PATH = "hand_landmarker.task"
-SERVER_URL = "http://127.0.0.1:5000/api/gesture"
-CHECKIN_STATUS_URL = "http://127.0.0.1:5000/api/check-in/current"
-
+BASE_URL = "https://smart-gesture-assistance-system.onrender.com"
+SERVER_URL = f"{BASE_URL}/api/gesture"
+CHECKIN_STATUS_URL = f"{BASE_URL}/api/check-in/current"
 CONFIDENCE_THRESHOLD = 0.60
 HISTORY_SIZE = 5
 STABLE_COUNT = 3
@@ -73,11 +76,12 @@ checkin_responded_at = None
 # PATIENT CHECK-IN SOUND: 1-SECOND BEEP
 # ============================================================
 def play_patient_checkin_beep():
-    """Play a one-second beep on the patient-side Windows computer."""
-    try:
-        winsound.Beep(1000, 1000)
-    except (RuntimeError, OSError):
-        pass
+    """Play a beep when supported by the patient's operating system."""
+    if winsound is not None:
+        try:
+            winsound.Beep(1000, 1000)
+        except (RuntimeError, OSError):
+            pass
 
 # ============================================================
 # SEND GESTURE TO FLASK
