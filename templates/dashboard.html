@@ -1129,6 +1129,9 @@
                 grid-template-columns: 1fr;
             }
         }
+        #soundToggle { cursor: pointer; font: inherit; border: 1px solid var(--border, #e5eaf0); }
+        #soundToggle.sound-on { background: #e8f7ed; color: #176b3a; }
+
     </style>
 </head>
 
@@ -1226,6 +1229,10 @@
         </div>
 
         <div class="top-right">
+
+            <button id="soundToggle" class="server-pill" type="button" onclick="toggleNotificationSound()" title="Enable notification sound">
+                <span class="dot"></span> 🔕 Sound Off
+            </button>
 
             <div class="server-pill">
                 <span class="dot"></span>
@@ -1412,26 +1419,6 @@
 
                         </div>
 
-
-                        <div style="margin-top: 18px;">
-                            <button
-                                id="checkInButton"
-                                class="btn btn-primary"
-                                onclick="startCheckIn()"
-                            >
-                                ♥ Are you okay?
-                            </button>
-
-                            <p
-                                id="checkInStatus"
-                                style="margin-top: 10px; font-size: 13px; color: #718096;"
-                                aria-live="polite"
-                            >
-                                No check-in requested.
-                            </p>
-                        </div>
-
-
                     </div>
 
                 </div>
@@ -1508,10 +1495,24 @@
                                         View History
                                     </button>
 
+                                    <button
+                                        class="btn btn-primary"
+                                        id="checkInButton"
+                                        onclick="startCheckIn()"
+                                    >
+                                        ♥ ARE YOU OKAY?
+                                    </button>
+
                                 </div>
 
                             </div>
 
+                        </div>
+
+                        <div id="checkInResponse" style="margin-top:16px;padding:14px;background:#f4f8fb;border:1px solid #e6edf3;border-radius:10px;">
+                            <strong style="color:#102a43;font-size:11px;">NURSE CHECK-IN</strong>
+                            <p id="checkInMessage" style="font-size:12px;margin-top:7px;color:#718096;">No check-in requested.</p>
+                            <p id="checkInDetails" style="font-size:11px;margin-top:5px;color:#718096;"></p>
                         </div>
 
                     </div>
@@ -1759,7 +1760,6 @@
                             </div>
 
                         </div>
-                        
 
                     </div>
 
@@ -2383,38 +2383,144 @@ setInterval(updateDateTime, 1000);
 
 
     /* =========================
+       REQUEST NOTIFICATION SOUND
+    ========================= */
+
+    let notificationSoundEnabled = false;
+    let notificationAudioContext = null;
+    let knownRequestIds = null;
+
+    function playNotificationSound() {
+        if (!notificationSoundEnabled) return;
+        try {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            if (!notificationAudioContext) notificationAudioContext = new AudioContextClass();
+            if (notificationAudioContext.state === "suspended") notificationAudioContext.resume();
+
+            const ctx = notificationAudioContext;
+            const now = ctx.currentTime;
+            // Two clear, short tones to alert the nurse to a new patient request.
+            [880, 1175].forEach((frequency, index) => {
+                const oscillator = ctx.createOscillator();
+                const gain = ctx.createGain();
+                oscillator.type = "sine";
+                oscillator.frequency.value = frequency;
+                gain.gain.setValueAtTime(0.0001, now + index * 0.18);
+                gain.gain.exponentialRampToValueAtTime(0.22, now + index * 0.18 + 0.025);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + index * 0.18 + 0.14);
+                oscillator.connect(gain);
+                gain.connect(ctx.destination);
+                oscillator.start(now + index * 0.18);
+                oscillator.stop(now + index * 0.18 + 0.15);
+            });
+        } catch (error) {
+            console.log("Notification sound error:", error);
+        }
+    }
+
+    // Emergency requests use a distinct repeating alert lasting 7 seconds.
+    function playEmergencyAlertSound() {
+        if (!notificationSoundEnabled) return;
+        try {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            if (!notificationAudioContext) notificationAudioContext = new AudioContextClass();
+            const ctx = notificationAudioContext;
+            if (ctx.state === "suspended") ctx.resume();
+            const startAt = ctx.currentTime;
+            const duration = 7;
+            const pulseEvery = 0.35;
+            for (let offset = 0; offset < duration; offset += pulseEvery) {
+                const oscillator = ctx.createOscillator();
+                const gain = ctx.createGain();
+                oscillator.type = "square";
+                oscillator.frequency.value = offset % 0.7 < 0.35 ? 950 : 1250;
+                gain.gain.setValueAtTime(0.0001, startAt + offset);
+                gain.gain.exponentialRampToValueAtTime(0.18, startAt + offset + 0.02);
+                gain.gain.setValueAtTime(0.18, startAt + offset + 0.16);
+                gain.gain.exponentialRampToValueAtTime(0.0001, startAt + offset + 0.20);
+                oscillator.connect(gain);
+                gain.connect(ctx.destination);
+                oscillator.start(startAt + offset);
+                oscillator.stop(startAt + offset + 0.21);
+            }
+        } catch (error) {
+            console.log("Emergency alert sound error:", error);
+        }
+    }
+
+    function toggleNotificationSound() {
+        notificationSoundEnabled = !notificationSoundEnabled;
+        const button = document.getElementById("soundToggle");
+        if (notificationSoundEnabled) {
+            // Creating/resuming audio inside this click satisfies browser sound permissions.
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass && !notificationAudioContext) notificationAudioContext = new AudioContextClass();
+                if (notificationAudioContext && notificationAudioContext.state === "suspended") notificationAudioContext.resume();
+            } catch (error) {
+                console.log("Audio setup error:", error);
+            }
+            button.innerHTML = '<span class="dot"></span> 🔔 Sound On';
+            button.classList.add("sound-on");
+            button.title = "Notification sound enabled";
+            playNotificationSound();
+            showToast("Notification sound enabled");
+        } else {
+            button.innerHTML = '<span class="dot"></span> 🔕 Sound Off';
+            button.classList.remove("sound-on");
+            button.title = "Enable notification sound";
+            showToast("Notification sound disabled");
+        }
+    }
+
+
+    /* =========================
        HISTORY
     ========================= */
 
     async function loadHistory() {
-
         try {
+            const response = await fetch("/api/history");
+            const history = await response.json();
 
-            const response =
-                await fetch("/api/history");
-
-            const history =
-                await response.json();
-
+            // Establish the initial baseline silently, then alert only for new requests.
+            if (Array.isArray(history)) {
+                const currentIds = new Set(
+                    history.map(item => String(item.id ?? item.request_id ?? "")).filter(Boolean)
+                );
+                if (knownRequestIds === null) {
+                    knownRequestIds = currentIds;
+                } else {
+                    const newRequests = history.filter(item => {
+                        const id = String(item.id ?? item.request_id ?? "");
+                        return id && !knownRequestIds.has(id);
+                    });
+                    if (newRequests.length > 0) {
+                        const hasEmergency = newRequests.some(item =>
+                            String(item.gesture ?? item.request ?? item.type ?? "")
+                                .toLowerCase().includes("emergency")
+                        );
+                        if (hasEmergency) {
+                            playEmergencyAlertSound();
+                            if (notificationSoundEnabled) showToast("EMERGENCY! Patient needs immediate assistance!");
+                        } else {
+                            playNotificationSound();
+                            if (notificationSoundEnabled) showToast("New patient request received!");
+                        }
+                    }
+                    knownRequestIds = currentIds;
+                }
+            }
 
             updateStats(history);
-
             renderRecent(history);
-
             renderLiveRequests(history);
-
             renderEmergency(history);
-
+        } catch (error) {
+            console.log("History error:", error);
         }
-        catch (error) {
-
-            console.log(
-                "History error:",
-                error
-            );
-
-        }
-
     }
 
 
@@ -3155,6 +3261,98 @@ setInterval(updateDateTime, 1000);
 
 
     /* =========================
+       NURSE-PATIENT CHECK-IN
+    ========================= */
+
+    let lastCheckInStatus = null;
+    let lastCheckInId = null;
+
+    async function startCheckIn() {
+        const button = document.getElementById("checkInButton");
+        button.disabled = true;
+        button.textContent = "SENDING REQUEST...";
+
+        try {
+            const response = await fetch("/api/check-in", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || "Could not send check-in");
+            }
+
+            showToast("Check-in sent to patient computer");
+            await loadCheckInStatus();
+        } catch (error) {
+            console.error("Check-in error:", error);
+            showToast("Could not send check-in. Check Flask server.");
+            button.disabled = false;
+            button.textContent = "♥ ARE YOU OKAY?";
+        }
+    }
+
+    async function loadCheckInStatus() {
+        try {
+            const response = await fetch("/api/check-in/current");
+            if (!response.ok) throw new Error("Could not load check-in status");
+            const data = await response.json();
+
+            const message = document.getElementById("checkInMessage");
+            const details = document.getElementById("checkInDetails");
+            const button = document.getElementById("checkInButton");
+
+            if (data.status === "none" || !data.status) {
+                message.textContent = "No check-in requested.";
+                message.style.color = "#718096";
+                details.textContent = "";
+                button.disabled = false;
+                button.textContent = "♥ ARE YOU OKAY?";
+                lastCheckInStatus = "none";
+                lastCheckInId = null;
+                return;
+            }
+
+            if (data.status === "pending") {
+                message.textContent = "WAITING FOR PATIENT RESPONSE...";
+                message.style.color = "#d97706";
+                details.textContent = "The patient screen displays the question and plays a one-second beep.";
+                button.disabled = true;
+                button.textContent = "CHECK-IN PENDING";
+                lastCheckInStatus = "pending";
+                lastCheckInId = data.id ?? lastCheckInId;
+                return;
+            }
+
+            if (data.status === "responded") {
+                message.textContent = "PATIENT RESPONDED: I'M OKAY";
+                message.style.color = "#16834a";
+
+                const responseTime = data.responded_at
+                    ? new Date(data.responded_at).toLocaleString("en-IN")
+                    : "Time unavailable";
+                const confidence = data.response_confidence !== null && data.response_confidence !== undefined
+                    ? Number(data.response_confidence).toFixed(1) + "%"
+                    : "Unavailable";
+
+                details.textContent = "Response time: " + responseTime + " | Confidence: " + confidence;
+                button.disabled = false;
+                button.textContent = "♥ ARE YOU OKAY?";
+
+                if (lastCheckInStatus !== "responded" || lastCheckInId !== data.id) {
+                    showToast("Patient responded: I'm okay");
+                }
+                lastCheckInStatus = "responded";
+                lastCheckInId = data.id ?? lastCheckInId;
+            }
+        } catch (error) {
+            console.error("Check-in status error:", error);
+        }
+    }
+
+
+    /* =========================
        UPDATE DASHBOARD
     ========================= */
 
@@ -3167,6 +3365,8 @@ setInterval(updateDateTime, 1000);
         await loadHistory();
 
         await loadArchivedHistory();
+
+        await loadCheckInStatus();
 
     }
 
@@ -3198,60 +3398,6 @@ setInterval(updateDateTime, 1000);
     }
 
 
-    async function startCheckIn() {
-        const button = document.getElementById("checkInButton");
-        const status = document.getElementById("checkInStatus");
-
-        button.disabled = true;
-        status.textContent = "Sending check-in...";
-
-        try {
-            const response = await fetch("/api/check-in", {
-                method: "POST"
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                throw new Error(data.message || "Could not send check-in");
-            }
-
-            status.textContent = data.message;
-            await loadCheckInStatus();
-
-        } catch (error) {
-            status.textContent = "Could not contact the patient system.";
-            console.error("Check-in error:", error);
-        } finally {
-            button.disabled = false;
-        }
-    }
-
-
-    async function loadCheckInStatus() {
-        try {
-            const response = await fetch("/api/check-in/current");
-            const data = await response.json();
-
-            const status = document.getElementById("checkInStatus");
-
-            if (data.status === "pending") {
-                status.textContent =
-                    "Question sent — waiting for patient response.";
-            } else if (data.status === "responded") {
-                status.textContent =
-                    "Patient responded: I'm okay" +
-                    (data.responded_at ? " • " + data.responded_at : "");
-            } else {
-                status.textContent = "No check-in requested.";
-            }
-
-        } catch (error) {
-            console.error("Check-in status error:", error);
-        }
-    }
-
-
     /* =========================
        START
     ========================= */
@@ -3264,14 +3410,10 @@ setInterval(updateDateTime, 1000);
        without reloading the page.
     */
 
-    
     setInterval(
         updateDashboard,
         2000
     );
-
-    loadCheckInStatus();
-    setInterval(loadCheckInStatus, 1500);
 
 </script>
 
