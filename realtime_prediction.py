@@ -1,4 +1,5 @@
 import cv2
+from PIL import Image, ImageDraw, ImageFont
 import mediapipe as mp
 import joblib
 import numpy as np
@@ -559,12 +560,75 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
 
         # ====================================================
-        # SHOW CAMERA
+        # PATIENT GESTURE GUIDE (DISPLAY ONLY)
+        # ====================================================
+        # Emoji and meanings are shown beside the camera feed.
+        # This section does not change the gesture detection logic.
+
+        panel_width = 330
+        panel = np.full(
+            (frame.shape[0], panel_width, 3),
+            (245, 245, 245),
+            dtype=np.uint8
+        )
+
+        # Use Pillow so Windows emoji fonts can render the hand symbols.
+        panel_rgb = cv2.cvtColor(panel, cv2.COLOR_BGR2RGB)
+        panel_image = Image.fromarray(panel_rgb)
+        draw = ImageDraw.Draw(panel_image)
+
+        def load_font(size, emoji=False):
+            candidates = (
+                [r"C:\Windows\Fonts\seguiemj.ttf", "seguiemj.ttf"]
+                if emoji else
+                [r"C:\Windows\Fonts\arial.ttf", "arial.ttf"]
+            )
+            for font_path in candidates:
+                try:
+                    return ImageFont.truetype(font_path, size)
+                except OSError:
+                    continue
+            return ImageFont.load_default()
+
+        title_font = load_font(18)
+        subtitle_font = load_font(12)
+        label_font = load_font(16)
+        meaning_font = load_font(12)
+        emoji_font = load_font(35, emoji=True)
+
+        draw.text((15, 14), "PATIENT GESTURE GUIDE", font=title_font, fill=(35, 35, 35))
+        draw.text((15, 43), "Show your hand clearly to the camera", font=subtitle_font, fill=(75, 75, 75))
+        draw.line((15, 67, panel_width - 15, 67), fill=(190, 190, 190), width=1)
+
+        guide_items = [
+            ("✊", "1. CALL NURSE", "Close your hand into a fist", (150, 20, 20)),
+            ("👍", "2. I'M OKAY", "Show a thumbs-up", (20, 120, 20)),
+            ("☝️", "3. NEED WATER", "Raise one finger", (160, 100, 20)),
+            ("🖐️", "4. EMERGENCY", "Show all five fingers open", (180, 20, 20)),
+        ]
+
+        y_positions = [82, 150, 218, 286]
+        for (emoji, label, meaning, label_color), y in zip(guide_items, y_positions):
+            draw.text((18, y), emoji, font=emoji_font, embedded_color=True)
+            draw.text((78, y + 2), label, font=label_font, fill=label_color)
+            draw.text((78, y + 28), meaning, font=meaning_font, fill=(55, 55, 55))
+
+        draw.line((15, 354, panel_width - 15, 354), fill=(190, 190, 190), width=1)
+        draw.text((15, 365), "Hold the gesture steady", font=subtitle_font, fill=(45, 45, 45))
+        draw.text((15, 385), "Press Q to close camera", font=subtitle_font, fill=(75, 75, 75))
+
+        panel = cv2.cvtColor(np.array(panel_image), cv2.COLOR_RGB2BGR)
+
+        # Join camera feed and guide panel side by side.
+        patient_window = np.hstack((frame, panel))
+
+        # ====================================================
+        # SHOW CAMERA + PATIENT GUIDE
         # ====================================================
 
         cv2.imshow(
             "Smart Patient Gesture Assistance",
-            frame
+            patient_window
         )
 
 
