@@ -1016,6 +1016,32 @@
         }
 
         /* =========================
+           ARCHIVED HISTORY BY DATE
+        ========================= */
+
+        .archive-date-section {
+            margin-bottom: 22px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .archive-date-heading {
+            padding: 15px 19px;
+            background: #f7fafc;
+            border-bottom: 1px solid var(--border);
+            color: var(--navy);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .archive-date-section table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* =========================
            RESPONSIVE
         ========================= */
 
@@ -1149,7 +1175,7 @@
 
         <button onclick="showSection('history', this)">
             <span class="menu-icon">▤</span>
-            <span>Request History</span>
+            <span>Archived History</span>
         </button>
 
         <button onclick="showSection('analytics', this)">
@@ -1241,8 +1267,14 @@
                 </div>
 
                 <div class="date" id="dateDisplay"></div>
+                <div class="date" id="timeDisplay"></div>
 
             </div>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 18px;">
+    <button class="btn btn-primary" onclick="resetDashboard()">
+        ↻ Reset Dashboard
+    </button>
+</div>
 
 
             <!-- STATS -->
@@ -1841,40 +1873,22 @@
 
             <div class="page-heading">
 
-                <h2>Request History</h2>
+                <h2>Archived History</h2>
 
                 <p>
-                    Complete history of gesture-based patient requests.
+                    Previous requests are preserved here and grouped by date.
                 </p>
 
             </div>
 
 
-            <div class="table-card">
-
-                <div class="table-wrap">
-
-                    <table>
-
-                        <thead>
-
-                            <tr>
-                                <th>Patient</th>
-                                <th>Gesture</th>
-                                <th>Time</th>
-                                <th>Confidence</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-
-                        </thead>
-
-                        <tbody id="historyTable"></tbody>
-
-                    </table>
-
+            <div id="archivedHistory">
+                <div class="card">
+                    <div class="empty">
+                        <div class="empty-icon">📚</div>
+                        <h3>Loading archived history...</h3>
+                    </div>
                 </div>
-
             </div>
 
         </section>
@@ -2014,8 +2028,8 @@
         },
 
         history: {
-            title: "Request History",
-            subtitle: "Complete gesture request activity"
+            title: "Archived History",
+            subtitle: "Past requests grouped by date"
         },
 
         analytics: {
@@ -2030,24 +2044,28 @@
        DATE
     ========================= */
 
-    function updateDate() {
+    function updateDateTime() {
+    const now = new Date();
 
-        const now = new Date();
+    document.getElementById("dateDisplay").textContent =
+        now.toLocaleDateString("en-IN", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
 
-        document.getElementById("dateDisplay").textContent =
-            now.toLocaleDateString(
-                "en-IN",
-                {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric"
-                }
-            );
+    document.getElementById("timeDisplay").textContent =
+        now.toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true
+        });
+}
 
-    }
-
-    updateDate();
+updateDateTime();
+setInterval(updateDateTime, 1000);
 
 
     /* =========================
@@ -2361,8 +2379,6 @@
             updateStats(history);
 
             renderRecent(history);
-
-            renderHistory(history);
 
             renderLiveRequests(history);
 
@@ -3005,6 +3021,103 @@
 
 
     /* =========================
+       ARCHIVED HISTORY BY DATE
+    ========================= */
+
+    async function loadArchivedHistory() {
+        const container = document.getElementById("archivedHistory");
+        if (!container) return;
+
+        try {
+            const response = await fetch("/api/archived-history");
+            const history = await response.json();
+
+            if (!response.ok) {
+                throw new Error(history.message || "Could not load archived history");
+            }
+
+            container.innerHTML = "";
+
+            if (!Array.isArray(history) || history.length === 0) {
+                container.innerHTML = `
+                    <div class="card">
+                        <div class="empty">
+                            <div class="empty-icon">📚</div>
+                            <h3>No archived history yet</h3>
+                            <p>When you reset the dashboard, previous requests will appear here grouped by date.</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            const grouped = {};
+            history.forEach(item => {
+                const date = item.request_date || (item.archived_at ? String(item.archived_at).slice(0, 10) : "Unknown date");
+                if (!grouped[date]) grouped[date] = [];
+                grouped[date].push(item);
+            });
+
+            const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+
+            dates.forEach(date => {
+                const section = document.createElement("section");
+                section.className = "archive-date-section";
+
+                const heading = document.createElement("h3");
+                heading.className = "archive-date-heading";
+                let formattedDate = date;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                    const [year, month, day] = date.split("-").map(Number);
+                    formattedDate = new Date(year, month - 1, day).toLocaleDateString("en-IN", {
+                        day: "numeric", month: "long", year: "numeric"
+                    });
+                }
+                heading.textContent = formattedDate;
+                section.appendChild(heading);
+
+                const wrap = document.createElement("div");
+                wrap.className = "table-wrap";
+                const table = document.createElement("table");
+                table.innerHTML = `
+                    <thead><tr>
+                        <th>Patient</th><th>Gesture</th><th>Time</th>
+                        <th>Confidence</th><th>Status</th>
+                    </tr></thead><tbody></tbody>`;
+                const tbody = table.querySelector("tbody");
+
+                grouped[date].forEach(item => {
+                    const row = document.createElement("tr");
+                    const values = [
+                        item.patient_name || item.patient || item.patient_id || "Patient",
+                        item.gesture || "Unknown",
+                        item.time || "--",
+                        `${Number(item.confidence || 0).toFixed(1)}%`,
+                        item.status || "Unknown"
+                    ];
+                    values.forEach(value => {
+                        const cell = document.createElement("td");
+                        cell.textContent = value;
+                        row.appendChild(cell);
+                    });
+                    tbody.appendChild(row);
+                });
+
+                wrap.appendChild(table);
+                section.appendChild(wrap);
+                container.appendChild(section);
+            });
+        } catch (error) {
+            console.error("Archived history error:", error);
+            container.innerHTML = `
+                <div class="card"><div class="empty">
+                    <h3>Unable to load archived history</h3>
+                    <p>Check that the Flask server has the /api/archived-history route.</p>
+                </div></div>`;
+        }
+    }
+
+
+    /* =========================
        ESCAPE HTML
     ========================= */
 
@@ -3032,6 +3145,35 @@
 
         await loadHistory();
 
+        await loadArchivedHistory();
+
+    }
+
+
+    /* =========================
+       RESET DASHBOARD
+    ========================= */
+
+    async function resetDashboard() {
+        const confirmed = confirm(
+            "Reset the dashboard? Current requests will be saved in Archived History."
+        );
+        if (!confirmed) return;
+
+        try {
+            const response = await fetch("/api/reset-dashboard", { method: "POST" });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Reset failed");
+            }
+
+            // Refresh from the now-empty live requests table, so all live counts become zero.
+            await updateDashboard();
+            showToast(`Dashboard reset. ${result.archived_count || 0} request(s) archived.`);
+        } catch (error) {
+            console.error("Reset error:", error);
+            alert("Could not reset dashboard: " + error.message);
+        }
     }
 
 

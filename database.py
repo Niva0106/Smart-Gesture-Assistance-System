@@ -1,3 +1,4 @@
+
 import sqlite3
 
 DATABASE = "hospital.db"
@@ -13,7 +14,7 @@ def create_database():
     connection = get_connection()
     cursor = connection.cursor()
 
-    # Patients table
+    # Patient information
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS patients (
             id TEXT PRIMARY KEY,
@@ -24,7 +25,7 @@ def create_database():
         )
     """)
 
-    # Gesture requests table
+    # Live requests
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,7 +38,32 @@ def create_database():
         )
     """)
 
-    # Add our initial patient
+    # Add request_date to existing databases if needed
+    cursor.execute("PRAGMA table_info(requests)")
+    columns = [row["name"] for row in cursor.fetchall()]
+
+    if "request_date" not in columns:
+        cursor.execute(
+            "ALTER TABLE requests ADD COLUMN request_date TEXT"
+        )
+
+    # Permanent archive: records survive dashboard resets
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS archived_requests (
+            archive_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            original_request_id INTEGER,
+            patient_id TEXT,
+            patient_name TEXT,
+            gesture TEXT NOT NULL,
+            confidence REAL DEFAULT 0,
+            request_date TEXT,
+            time TEXT,
+            status TEXT,
+            archived_at TEXT NOT NULL
+        )
+    """)
+
+    # Insert the initial patient if not already present
     cursor.execute("""
         INSERT OR IGNORE INTO patients
         (id, name, age, room_number, medical_information)
@@ -53,7 +79,7 @@ def create_database():
     connection.commit()
     connection.close()
 
-    print("Database created successfully!")
+    print("Database and archive created successfully!")
 
 
 if __name__ == "__main__":
