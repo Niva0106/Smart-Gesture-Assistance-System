@@ -101,6 +101,18 @@ last_sent_time = 0
 
 stable_gesture = None
 
+# Nurse check-in polling
+CHECKIN_STATUS_URL = (
+    "http://127.0.0.1:5000/api/check-in/current"
+)
+
+CHECKIN_POLL_INTERVAL = 0.5
+last_checkin_poll = 0
+
+checkin_state = {"status": "none"}
+
+CHECKIN_RESPONSE_DISPLAY_SECONDS = 7
+checkin_responded_at = None
 
 # ============================================================
 # SEND GESTURE TO FLASK
@@ -116,8 +128,11 @@ def send_gesture(gesture, confidence):
     # Prevent duplicate requests
     if (
         gesture == last_sent_gesture
-        and
-        current_time - last_sent_time < REQUEST_COOLDOWN
+        and current_time - last_sent_time < REQUEST_COOLDOWN
+        and not (
+            gesture == "okay"
+            and checkin_state.get("status") == "pending"
+        )
     ):
         return
 
@@ -221,6 +236,35 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
         # Mirror camera
         frame = cv2.flip(frame, 1)
+
+        # Retrieve the latest nurse check-in periodically.
+        if time.time() - last_checkin_poll >= CHECKIN_POLL_INTERVAL:
+            last_checkin_poll = time.time()
+
+            try:
+                response = requests.get(
+                    CHECKIN_STATUS_URL,
+                    timeout=0.2
+                )
+
+                
+                if response.ok:
+                    new_state = response.json()
+
+                    # Start the timer when a response is first detected.
+                    if (
+                        new_state.get("status") == "responded"
+                        and checkin_state.get("status") != "responded"
+                    ):
+                        checkin_responded_at = time.time()
+
+                    checkin_state = new_state
+
+
+            except requests.exceptions.RequestException:
+                # Keep the last known state if Flask is briefly unavailable.
+                pass
+
 
 
         # ----------------------------------------------------
@@ -539,6 +583,55 @@ with HandLandmarker.create_from_options(options) as landmarker:
             (0, 255, 0),
             1
         )
+
+
+        # Display the nurse's question on the patient camera screen.
+        checkin_status = checkin_state.get("status")
+
+        if checkin_status == "pending":
+            cv2.rectangle(
+                frame,
+                (10, 130),
+                (625, 180),
+                (0, 90, 180),
+                -1
+            )
+
+            cv2.putText(
+                frame,
+                "NURSE CHECK-IN: ARE YOU OKAY?",
+                (20, 163),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.65,
+                (255, 255, 255),
+                2
+            )
+
+        
+        elif checkin_status == "responded":
+            if checkin_responded_at is not None:
+                elapsed = time.time() - checkin_responded_at
+
+                if elapsed < CHECKIN_RESPONSE_DISPLAY_SECONDS:
+                    cv2.rectangle(
+                        frame,
+                        (10, 130),
+                        (625, 180),
+                        (30, 130, 60),
+                        -1
+                    )
+
+                    cv2.putText(
+                        frame,
+                        "THANK YOU! RESPONSE RECEIVED",
+                        (20, 163),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.65,
+                        (255, 255, 255),
+                        2
+                    )
+
+
 
 
         # ====================================================

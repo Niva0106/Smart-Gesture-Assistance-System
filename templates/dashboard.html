@@ -1412,6 +1412,26 @@
 
                         </div>
 
+
+                        <div style="margin-top: 18px;">
+                            <button
+                                id="checkInButton"
+                                class="btn btn-primary"
+                                onclick="startCheckIn()"
+                            >
+                                ♥ Are you okay?
+                            </button>
+
+                            <p
+                                id="checkInStatus"
+                                style="margin-top: 10px; font-size: 13px; color: #718096;"
+                                aria-live="polite"
+                            >
+                                No check-in requested.
+                            </p>
+                        </div>
+
+
                     </div>
 
                 </div>
@@ -1739,6 +1759,7 @@
                             </div>
 
                         </div>
+                        
 
                     </div>
 
@@ -3177,6 +3198,60 @@ setInterval(updateDateTime, 1000);
     }
 
 
+    async function startCheckIn() {
+        const button = document.getElementById("checkInButton");
+        const status = document.getElementById("checkInStatus");
+
+        button.disabled = true;
+        status.textContent = "Sending check-in...";
+
+        try {
+            const response = await fetch("/api/check-in", {
+                method: "POST"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Could not send check-in");
+            }
+
+            status.textContent = data.message;
+            await loadCheckInStatus();
+
+        } catch (error) {
+            status.textContent = "Could not contact the patient system.";
+            console.error("Check-in error:", error);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+
+    async function loadCheckInStatus() {
+        try {
+            const response = await fetch("/api/check-in/current");
+            const data = await response.json();
+
+            const status = document.getElementById("checkInStatus");
+
+            if (data.status === "pending") {
+                status.textContent =
+                    "Question sent — waiting for patient response.";
+            } else if (data.status === "responded") {
+                status.textContent =
+                    "Patient responded: I'm okay" +
+                    (data.responded_at ? " • " + data.responded_at : "");
+            } else {
+                status.textContent = "No check-in requested.";
+            }
+
+        } catch (error) {
+            console.error("Check-in status error:", error);
+        }
+    }
+
+
     /* =========================
        START
     ========================= */
@@ -3189,10 +3264,14 @@ setInterval(updateDateTime, 1000);
        without reloading the page.
     */
 
+    
     setInterval(
         updateDashboard,
         2000
     );
+
+    loadCheckInStatus();
+    setInterval(loadCheckInStatus, 1500);
 
 </script>
 

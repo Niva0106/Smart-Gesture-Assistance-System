@@ -10,6 +10,26 @@ def get_connection():
     return connection
 
 
+def ensure_checkins_table():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS patient_checkins (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            patient_id TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            requested_at TEXT NOT NULL,
+            responded_at TEXT,
+            response_confidence REAL,
+            FOREIGN KEY (patient_id) REFERENCES patients(id)
+        )
+    """)
+
+    connection.commit()
+    connection.close()
+
+
 def create_database():
     connection = get_connection()
     cursor = connection.cursor()

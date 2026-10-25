@@ -3,9 +3,10 @@ from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
 from datetime import datetime
 import sqlite3
-from database import get_connection, create_database
+from database import get_connection, create_database,ensure_checkins_table
 
 app = Flask(__name__)
+ensure_checkins_table()
 CORS(app)
 
 # Initialize database and archive table
@@ -135,6 +136,103 @@ def get_history():
         connection.close()
 
 
+
+# ==========================================
+# NURSE-INITIATED PATIENT CHECK-IN
+# ==========================================
+
+@app.route("/api/check-in", methods=["POST"])
+def start_check_in():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT id
+        FROM patients
+        LIMIT 1
+    """)
+    patient = cursor.fetchone()
+
+    if not patient:
+        connection.close()
+        return jsonify({
+            "success": False,
+            "message": "No patient found"
+        }), 404
+
+    patient_id = patient["id"]
+
+    # Avoid creating duplicate active check-ins.
+    cursor.execute("""
+        SELECT id, status, requested_at
+        FROM patient_checkins
+        WHERE patient_id = ? AND status = 'pending'
+        ORDER BY id DESC
+        LIMIT 1
+    """, (patient_id,))
+
+    existing = cursor.fetchone()
+
+    if existing:
+        connection.close()
+        return jsonify({
+            "success": True,
+            "message": "Check-in is already waiting for a response",
+            "checkin": dict(existing)
+        })
+
+    requested_at = datetime.now().strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+
+    cursor.execute("""
+        INSERT INTO patient_checkins
+            (patient_id, status, requested_at)
+        VALUES (?, 'pending', ?)
+    """, (patient_id, requested_at))
+
+    checkin_id = cursor.lastrowid
+
+    connection.commit()
+    connection.close()
+
+    return jsonify({
+        "success": True,
+        "message": "Are you okay? sent to patient",
+        "checkin_id": checkin_id,
+        "status": "pending"
+    })
+
+
+@app.route("/api/check-in/current", methods=["GET"])
+def get_current_check_in():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            patient_id,
+            status,
+            requested_at,
+            responded_at,
+            response_confidence
+        FROM patient_checkins
+        ORDER BY id DESC
+        LIMIT 1
+    """)
+
+    result = cursor.fetchone()
+    connection.close()
+
+    if not result:
+        return jsonify({
+            "status": "none"
+        })
+
+    return jsonify(dict(result))
+
+
 # ==========================================
 # Receive a new gesture
 # ==========================================
@@ -181,6 +279,36 @@ def receive_gesture():
             }), 404
 
         patient_id = patient["id"]
+
+
+        # If the patient makes the "I'm okay" gesture,
+        # complete the latest pending nurse check-in.
+
+        if str(gesture).strip().lower() in {
+            "okay",
+            "i'm okay",
+            "im okay",
+            "i am okay"
+        }:
+            cursor.execute("""
+                UPDATE patient_checkins
+                SET
+                    status = 'responded',
+                    responded_at = ?,
+                    response_confidence = ?
+                WHERE id = (
+                    SELECT id
+                    FROM patient_checkins
+                    WHERE patient_id = ?
+                    AND status = 'pending'
+                    ORDER BY id DESC
+                    LIMIT 1
+                )
+            """, (
+                now.strftime("%Y-%m-%d %H:%M:%S"),
+                confidence,
+                patient_id
+            ))
 
         # Save gesture request with date and time
         cursor.execute("""
